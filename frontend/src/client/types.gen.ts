@@ -10,6 +10,19 @@ export type AddressCreate = {
     is_default?: boolean;
 };
 
+export type AddressPublic = {
+    id: string;
+    user_id: string;
+    receiver_name: string;
+    receiver_phone: string;
+    province: string;
+    city: string;
+    district: string;
+    detail: string;
+    is_default: boolean;
+    created_at?: (string | null);
+};
+
 export type AddressUpdate = {
     receiver_name?: (string | null);
     receiver_phone?: (string | null);
@@ -247,20 +260,20 @@ export type ValidationError = {
     };
 };
 
-export type AddressesReadAddressesResponse = (unknown);
+export type AddressesReadAddressesResponse = (Array<AddressPublic>);
 
 export type AddressesCreateAddressData = {
     requestBody: AddressCreate;
 };
 
-export type AddressesCreateAddressResponse = (Message);
+export type AddressesCreateAddressResponse = (AddressPublic);
 
 export type AddressesUpdateAddressData = {
     addressId: string;
     requestBody: AddressUpdate;
 };
 
-export type AddressesUpdateAddressResponse = (Message);
+export type AddressesUpdateAddressResponse = (AddressPublic);
 
 export type AddressesDeleteAddressData = {
     addressId: string;

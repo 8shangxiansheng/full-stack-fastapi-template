@@ -43,6 +43,64 @@ export const AddressCreateSchema = {
     title: 'AddressCreate'
 } as const;
 
+export const AddressPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        user_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'User Id'
+        },
+        receiver_name: {
+            type: 'string',
+            title: 'Receiver Name'
+        },
+        receiver_phone: {
+            type: 'string',
+            title: 'Receiver Phone'
+        },
+        province: {
+            type: 'string',
+            title: 'Province'
+        },
+        city: {
+            type: 'string',
+            title: 'City'
+        },
+        district: {
+            type: 'string',
+            title: 'District'
+        },
+        detail: {
+            type: 'string',
+            title: 'Detail'
+        },
+        is_default: {
+            type: 'boolean',
+            title: 'Is Default'
+        },
+        created_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'user_id', 'receiver_name', 'receiver_phone', 'province', 'city', 'district', 'detail', 'is_default'],
+    title: 'AddressPublic'
+} as const;
+
 export const AddressUpdateSchema = {
     properties: {
         receiver_name: {

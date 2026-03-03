@@ -8,8 +8,8 @@ import type { AddressesReadAddressesResponse, AddressesCreateAddressData, Addres
 export class AddressesService {
     /**
      * Read Addresses
-     * Retrieve address list (skeleton).
-     * @returns unknown Successful Response
+     * Retrieve current user's addresses.
+     * @returns AddressPublic Successful Response
      * @throws ApiError
      */
     public static readAddresses(): CancelablePromise<AddressesReadAddressesResponse> {
@@ -21,10 +21,10 @@ export class AddressesService {
     
     /**
      * Create Address
-     * Create a new address (skeleton).
+     * Create a new address.
      * @param data The data for the request.
      * @param data.requestBody
-     * @returns Message Successful Response
+     * @returns AddressPublic Successful Response
      * @throws ApiError
      */
     public static createAddress(data: AddressesCreateAddressData): CancelablePromise<AddressesCreateAddressResponse> {
@@ -41,11 +41,11 @@ export class AddressesService {
     
     /**
      * Update Address
-     * Update address (skeleton).
+     * Update address.
      * @param data The data for the request.
      * @param data.addressId
      * @param data.requestBody
-     * @returns Message Successful Response
+     * @returns AddressPublic Successful Response
      * @throws ApiError
      */
     public static updateAddress(data: AddressesUpdateAddressData): CancelablePromise<AddressesUpdateAddressResponse> {
@@ -65,7 +65,7 @@ export class AddressesService {
     
     /**
      * Delete Address
-     * Delete address (skeleton).
+     * Delete address.
      * @param data The data for the request.
      * @param data.addressId
      * @returns Message Successful Response
