@@ -5,20 +5,29 @@ import {
 } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { Clock3 } from "lucide-react"
-import { Suspense } from "react"
+import { Suspense, useState } from "react"
 
-import { OrdersService, PaymentsService } from "@/client"
+import { type OrderStatus, OrdersService, PaymentsService } from "@/client"
 import PendingItems from "@/components/Pending/PendingItems"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
 
-function getOrdersQueryOptions() {
+type OrderStatusFilter = "all" | OrderStatus
+
+function getOrdersQueryOptions(status: OrderStatusFilter) {
   return {
-    queryFn: () => OrdersService.readOrders(),
-    queryKey: ["orders"],
+    queryFn: () => OrdersService.readOrders(status === "all" ? {} : { status }),
+    queryKey: ["orders", status],
   }
 }
 
@@ -111,7 +120,8 @@ function OrdersContent() {
   const queryClient = useQueryClient()
   const { showErrorToast, showSuccessToast } = useCustomToast()
   const { user: currentUser } = useAuth()
-  const { data: orders } = useSuspenseQuery(getOrdersQueryOptions())
+  const [statusFilter, setStatusFilter] = useState<OrderStatusFilter>("all")
+  const { data: orders } = useSuspenseQuery(getOrdersQueryOptions(statusFilter))
 
   const payMutation = useMutation({
     mutationFn: async (orderId: string) => {
@@ -169,6 +179,32 @@ function OrdersContent() {
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end">
+        <Select
+          value={statusFilter}
+          onValueChange={(value) => setStatusFilter(value as OrderStatusFilter)}
+        >
+          <SelectTrigger className="w-full md:w-56">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="pending_payment">Pending Payment</SelectItem>
+            <SelectItem value="paid">Paid</SelectItem>
+            <SelectItem value="accepted">Accepted</SelectItem>
+            <SelectItem value="preparing">Preparing</SelectItem>
+            <SelectItem value="ready_for_delivery">
+              Ready For Delivery
+            </SelectItem>
+            <SelectItem value="delivering">Delivering</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="cancelled">Cancelled</SelectItem>
+            <SelectItem value="refund_pending">Refund Pending</SelectItem>
+            <SelectItem value="refunded">Refunded</SelectItem>
+            <SelectItem value="refund_rejected">Refund Rejected</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       {orders.map((order) => (
         <div key={order.id} className="rounded-lg border p-4 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">

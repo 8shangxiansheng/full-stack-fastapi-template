@@ -1,8 +1,11 @@
+import uuid
+from json import dumps
+
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
 from app.core.config import settings
-from app.models import DishSku, User
+from app.models import DishSku, PaymentRecord, PaymentStatus, User
 from tests.utils.address import create_random_address
 from tests.utils.menu import create_random_dish_sku
 from tests.utils.user import authentication_token_from_email, create_random_user
@@ -46,6 +49,31 @@ def _create_order(
     )
     assert create_response.status_code == 200
     return create_response.json(), sku
+
+
+def _pay_order(
+    client: TestClient,
+    headers: dict[str, str],
+    order_id: str,
+) -> None:
+    create_response = client.post(
+        f"{settings.API_V1_STR}/payments/create",
+        headers=headers,
+        json={"order_id": order_id, "provider": "mockpay"},
+    )
+    assert create_response.status_code == 200
+    out_trade_no = create_response.json()["out_trade_no"]
+
+    callback_response = client.post(
+        f"{settings.API_V1_STR}/payments/callbacks",
+        json={
+            "provider": "mockpay",
+            "transaction_id": out_trade_no,
+            "payload": dumps({"out_trade_no": out_trade_no, "status": "success"}),
+            "signature": "test-signature",
+        },
+    )
+    assert callback_response.status_code == 200
 
 
 def test_create_order_success(
@@ -208,3 +236,38 @@ def test_superuser_can_run_merchant_event(
     )
     assert accept_response.status_code == 200
     assert accept_response.json()["status"] == "accepted"
+
+
+def test_refund_approval_updates_payment_status(
+    client: TestClient,
+    normal_user_token_headers: dict[str, str],
+    superuser_token_headers: dict[str, str],
+    db: Session,
+) -> None:
+    order_body, _ = _create_order(client, db, normal_user_token_headers, settings.EMAIL_TEST_USER)
+    _pay_order(client, normal_user_token_headers, order_body["id"])
+
+    request_response = client.post(
+        f"{settings.API_V1_STR}/orders/{order_body['id']}/status",
+        headers=normal_user_token_headers,
+        json={"event": "request_refund"},
+    )
+    assert request_response.status_code == 200
+    assert request_response.json()["status"] == "refund_pending"
+
+    approve_response = client.post(
+        f"{settings.API_V1_STR}/orders/{order_body['id']}/status",
+        headers=superuser_token_headers,
+        json={"event": "approve_refund"},
+    )
+    assert approve_response.status_code == 200
+    assert approve_response.json()["status"] == "refunded"
+
+    payment = db.exec(
+        select(PaymentRecord)
+        .where(PaymentRecord.order_id == uuid.UUID(order_body["id"]))
+        .order_by(PaymentRecord.created_at.desc())
+    ).first()
+    if not payment:
+        raise Exception("Payment record not found")
+    assert payment.status == PaymentStatus.REFUNDED

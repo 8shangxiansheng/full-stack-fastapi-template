@@ -18,6 +18,8 @@ from app.models import (
     OrderItem,
     OrderStatus,
     OrderStatusLog,
+    PaymentRecord,
+    PaymentStatus,
 )
 
 router = APIRouter(prefix="/orders", tags=["orders"])
@@ -274,6 +276,19 @@ def change_order_status(
     order.status = next_status
     if next_status == OrderStatus.PAID:
         order.paid_at = datetime.now(timezone.utc)
+    if body.event == "approve_refund":
+        payment = session.exec(
+            select(PaymentRecord)
+            .where(
+                PaymentRecord.order_id == order.id,
+                PaymentRecord.status == PaymentStatus.SUCCESS,
+            )
+            .order_by(col(PaymentRecord.created_at).desc())
+        ).first()
+        if not payment:
+            raise HTTPException(status_code=400, detail="No successful payment to refund")
+        payment.status = PaymentStatus.REFUNDED
+        session.add(payment)
     session.add(order)
     session.add(
         OrderStatusLog(
