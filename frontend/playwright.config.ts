@@ -83,9 +83,20 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  webServer: {
-    command: 'bun run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: [
+    {
+      command:
+        "UV_CACHE_DIR=/tmp/uv-cache POSTGRES_PASSWORD=changethis uv run alembic upgrade head && UV_CACHE_DIR=/tmp/uv-cache POSTGRES_PASSWORD=changethis uv run python app/initial_data.py && UV_CACHE_DIR=/tmp/uv-cache POSTGRES_PASSWORD=changethis uv run fastapi run app/main.py --host 127.0.0.1 --port 8000",
+      cwd: "../backend",
+      url: "http://127.0.0.1:8000/api/v1/utils/health-check/",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120 * 1000,
+    },
+    {
+      command: "bun run dev",
+      url: "http://localhost:5173",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120 * 1000,
+    },
+  ],
 });

@@ -6,7 +6,7 @@
 
 - Backend 全量回归：通过。
 - Frontend 构建：通过。
-- Frontend Playwright E2E：未通过（环境阻塞，见下文）。
+- Frontend Playwright E2E：通过。
 
 ## 已执行命令与结果
 
@@ -19,9 +19,8 @@
 - 说明：存在 chunk size 提示（`index` chunk > 500 kB），为性能优化建议，非阻断项。
 
 3. `npm run test`（frontend, Playwright）
-- 结果：失败。
-- 失败点：`tests/auth.setup.ts` 在登录后 `waitForURL("/")` 超时（30s）。
-- 现象：浏览器与前端 webServer 已可启动，失败发生在登录闭环阶段，属于联调环境（后端/API 可达性或测试数据）阻塞。
+- 结果：`62 passed`。
+- 说明：已补齐联调前置（backend 启动/初始化）并修复 E2E 脚本中的等待与断言稳定性问题。
 
 ## 本轮修复
 
@@ -33,13 +32,9 @@
 - 文件：`backend/tests/api/routes/test_addresses.py`
 - 调整：在断言前调用 `db.expire_all()`，避免跨会话写入导致的 identity map 旧值误判。
 
-## 发布前阻塞项（ISS-012 剩余）
+## 发布前剩余建议项
 
-1. 补齐 E2E 联调环境并重跑 Playwright
-- 建议命令：`npm run test`（frontend）
-- 通过标准：`62` 条 Playwright 用例全绿。
-
-2. 压测执行与报告沉淀
+1. 压测执行与报告沉淀
 - 当前仓库未内置专用压测脚本（如 k6/Locust）。
 - 发布前建议至少补一版主链路压测（下单-支付-履约查询），并沉淀 QPS、P95、错误率、数据库负载指标。
 
