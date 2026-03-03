@@ -3,7 +3,180 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AddressesReadAddressesResponse, AddressesCreateAddressData, AddressesCreateAddressResponse, AddressesUpdateAddressData, AddressesUpdateAddressResponse, AddressesDeleteAddressData, AddressesDeleteAddressResponse, CartReadCartResponse, CartAddCartItemData, CartAddCartItemResponse, CartClearCartResponse, CartUpdateCartItemData, CartUpdateCartItemResponse, CartDeleteCartItemData, CartDeleteCartItemResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MenuReadCategoriesData, MenuReadCategoriesResponse, MenuReadDishesData, MenuReadDishesResponse, MenuReadDishSkusData, MenuReadDishSkusResponse, MenuSyncMenuResponse, OrdersReadOrdersResponse, OrdersCreateOrderData, OrdersCreateOrderResponse, OrdersReadOrderData, OrdersReadOrderResponse, OrdersChangeOrderStatusData, OrdersChangeOrderStatusResponse, PaymentsCreatePaymentData, PaymentsCreatePaymentResponse, PaymentsPaymentCallbackData, PaymentsPaymentCallbackResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+
+export class AddressesService {
+    /**
+     * Read Addresses
+     * Retrieve address list (skeleton).
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static readAddresses(): CancelablePromise<AddressesReadAddressesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/addresses/'
+        });
+    }
+    
+    /**
+     * Create Address
+     * Create a new address (skeleton).
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static createAddress(data: AddressesCreateAddressData): CancelablePromise<AddressesCreateAddressResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/addresses/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Address
+     * Update address (skeleton).
+     * @param data The data for the request.
+     * @param data.addressId
+     * @param data.requestBody
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static updateAddress(data: AddressesUpdateAddressData): CancelablePromise<AddressesUpdateAddressResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/addresses/{address_id}',
+            path: {
+                address_id: data.addressId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Address
+     * Delete address (skeleton).
+     * @param data The data for the request.
+     * @param data.addressId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deleteAddress(data: AddressesDeleteAddressData): CancelablePromise<AddressesDeleteAddressResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/addresses/{address_id}',
+            path: {
+                address_id: data.addressId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class CartService {
+    /**
+     * Read Cart
+     * Retrieve current user's cart (skeleton).
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static readCart(): CancelablePromise<CartReadCartResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/cart/'
+        });
+    }
+    
+    /**
+     * Add Cart Item
+     * Add an item to cart (skeleton).
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static addCartItem(data: CartAddCartItemData): CancelablePromise<CartAddCartItemResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/cart/items',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Clear Cart
+     * Clear all cart items (skeleton).
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static clearCart(): CancelablePromise<CartClearCartResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/cart/items'
+        });
+    }
+    
+    /**
+     * Update Cart Item
+     * Update cart item quantity (skeleton).
+     * @param data The data for the request.
+     * @param data.cartItemId
+     * @param data.requestBody
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static updateCartItem(data: CartUpdateCartItemData): CancelablePromise<CartUpdateCartItemResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/cart/items/{cart_item_id}',
+            path: {
+                cart_item_id: data.cartItemId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Cart Item
+     * Delete a cart item (skeleton).
+     * @param data The data for the request.
+     * @param data.cartItemId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deleteCartItem(data: CartDeleteCartItemData): CancelablePromise<CartDeleteCartItemResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/cart/items/{cart_item_id}',
+            path: {
+                cart_item_id: data.cartItemId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
 
 export class ItemsService {
     /**
@@ -206,6 +379,208 @@ export class LoginService {
             path: {
                 email: data.email
             },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class MenuService {
+    /**
+     * Read Categories
+     * Retrieve menu categories (skeleton).
+     * @param data The data for the request.
+     * @param data.isActive
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static readCategories(data: MenuReadCategoriesData = {}): CancelablePromise<MenuReadCategoriesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/menu/categories',
+            query: {
+                is_active: data.isActive
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Dishes
+     * Retrieve dishes (skeleton).
+     * @param data The data for the request.
+     * @param data.categoryId
+     * @param data.isActive
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static readDishes(data: MenuReadDishesData = {}): CancelablePromise<MenuReadDishesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/menu/dishes',
+            query: {
+                category_id: data.categoryId,
+                is_active: data.isActive
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Dish Skus
+     * Retrieve SKU list for a dish (skeleton).
+     * @param data The data for the request.
+     * @param data.dishId
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static readDishSkus(data: MenuReadDishSkusData): CancelablePromise<MenuReadDishSkusResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/menu/dishes/{dish_id}/skus',
+            path: {
+                dish_id: data.dishId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Sync Menu
+     * Reserved endpoint for menu sync jobs (skeleton).
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static syncMenu(): CancelablePromise<MenuSyncMenuResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/menu/sync'
+        });
+    }
+}
+
+export class OrdersService {
+    /**
+     * Read Orders
+     * Retrieve order list (skeleton).
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static readOrders(): CancelablePromise<OrdersReadOrdersResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/orders/'
+        });
+    }
+    
+    /**
+     * Create Order
+     * Create order from cart (skeleton).
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static createOrder(data: OrdersCreateOrderData): CancelablePromise<OrdersCreateOrderResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/orders/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Order
+     * Retrieve order detail (skeleton).
+     * @param data The data for the request.
+     * @param data.orderId
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static readOrder(data: OrdersReadOrderData): CancelablePromise<OrdersReadOrderResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/orders/{order_id}',
+            path: {
+                order_id: data.orderId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Change Order Status
+     * Change order status by event (skeleton).
+     * @param data The data for the request.
+     * @param data.orderId
+     * @param data.requestBody
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static changeOrderStatus(data: OrdersChangeOrderStatusData): CancelablePromise<OrdersChangeOrderStatusResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/orders/{order_id}/status',
+            path: {
+                order_id: data.orderId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class PaymentsService {
+    /**
+     * Create Payment
+     * Create payment request (skeleton).
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static createPayment(data: PaymentsCreatePaymentData): CancelablePromise<PaymentsCreatePaymentResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/payments/create',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Payment Callback
+     * Handle payment callback (skeleton).
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static paymentCallback(data: PaymentsPaymentCallbackData): CancelablePromise<PaymentsPaymentCallbackResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/payments/callbacks',
+            body: data.requestBody,
+            mediaType: 'application/json',
             errors: {
                 422: 'Validation Error'
             }
