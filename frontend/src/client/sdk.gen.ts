@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AddressesReadAddressesResponse, AddressesCreateAddressData, AddressesCreateAddressResponse, AddressesUpdateAddressData, AddressesUpdateAddressResponse, AddressesDeleteAddressData, AddressesDeleteAddressResponse, CartReadCartResponse, CartAddCartItemData, CartAddCartItemResponse, CartClearCartResponse, CartUpdateCartItemData, CartUpdateCartItemResponse, CartDeleteCartItemData, CartDeleteCartItemResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MenuReadCategoriesData, MenuReadCategoriesResponse, MenuReadDishesData, MenuReadDishesResponse, MenuReadDishSkusData, MenuReadDishSkusResponse, MenuSyncMenuResponse, OrdersReadOrdersResponse, OrdersCreateOrderData, OrdersCreateOrderResponse, OrdersReadOrderData, OrdersReadOrderResponse, OrdersChangeOrderStatusData, OrdersChangeOrderStatusResponse, PaymentsCreatePaymentData, PaymentsCreatePaymentResponse, PaymentsPaymentCallbackData, PaymentsPaymentCallbackResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AddressesReadAddressesResponse, AddressesCreateAddressData, AddressesCreateAddressResponse, AddressesUpdateAddressData, AddressesUpdateAddressResponse, AddressesDeleteAddressData, AddressesDeleteAddressResponse, CartReadCartResponse, CartAddCartItemData, CartAddCartItemResponse, CartClearCartResponse, CartUpdateCartItemData, CartUpdateCartItemResponse, CartDeleteCartItemData, CartDeleteCartItemResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MenuReadCategoriesData, MenuReadCategoriesResponse, MenuCreateCategoryData, MenuCreateCategoryResponse, MenuUpdateCategoryData, MenuUpdateCategoryResponse, MenuDeleteCategoryData, MenuDeleteCategoryResponse, MenuReadDishesData, MenuReadDishesResponse, MenuCreateDishData, MenuCreateDishResponse, MenuUpdateDishData, MenuUpdateDishResponse, MenuDeleteDishData, MenuDeleteDishResponse, MenuReadDishSkusData, MenuReadDishSkusResponse, MenuCreateDishSkuData, MenuCreateDishSkuResponse, MenuUpdateDishSkuData, MenuUpdateDishSkuResponse, MenuDeleteDishSkuData, MenuDeleteDishSkuResponse, OrdersReadOrdersResponse, OrdersCreateOrderData, OrdersCreateOrderResponse, OrdersReadOrderData, OrdersReadOrderResponse, OrdersChangeOrderStatusData, OrdersChangeOrderStatusResponse, PaymentsCreatePaymentData, PaymentsCreatePaymentResponse, PaymentsPaymentCallbackData, PaymentsPaymentCallbackResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class AddressesService {
     /**
@@ -389,10 +389,10 @@ export class LoginService {
 export class MenuService {
     /**
      * Read Categories
-     * Retrieve menu categories (skeleton).
+     * Retrieve menu categories.
      * @param data The data for the request.
      * @param data.isActive
-     * @returns unknown Successful Response
+     * @returns CategoryPublic Successful Response
      * @throws ApiError
      */
     public static readCategories(data: MenuReadCategoriesData = {}): CancelablePromise<MenuReadCategoriesResponse> {
@@ -409,21 +409,63 @@ export class MenuService {
     }
     
     /**
-     * Read Dishes
-     * Retrieve dishes (skeleton).
+     * Create Category
+     * Create a category.
      * @param data The data for the request.
-     * @param data.categoryId
-     * @param data.isActive
-     * @returns unknown Successful Response
+     * @param data.requestBody
+     * @returns CategoryPublic Successful Response
      * @throws ApiError
      */
-    public static readDishes(data: MenuReadDishesData = {}): CancelablePromise<MenuReadDishesResponse> {
+    public static createCategory(data: MenuCreateCategoryData): CancelablePromise<MenuCreateCategoryResponse> {
         return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/menu/dishes',
-            query: {
-                category_id: data.categoryId,
-                is_active: data.isActive
+            method: 'POST',
+            url: '/api/v1/menu/categories',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Category
+     * Update a category.
+     * @param data The data for the request.
+     * @param data.categoryId
+     * @param data.requestBody
+     * @returns CategoryPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateCategory(data: MenuUpdateCategoryData): CancelablePromise<MenuUpdateCategoryResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/menu/categories/{category_id}',
+            path: {
+                category_id: data.categoryId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Category
+     * Delete a category.
+     * @param data The data for the request.
+     * @param data.categoryId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deleteCategory(data: MenuDeleteCategoryData): CancelablePromise<MenuDeleteCategoryResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/menu/categories/{category_id}',
+            path: {
+                category_id: data.categoryId
             },
             errors: {
                 422: 'Validation Error'
@@ -432,17 +474,88 @@ export class MenuService {
     }
     
     /**
-     * Read Dish Skus
-     * Retrieve SKU list for a dish (skeleton).
+     * Read Dishes
+     * Retrieve dishes.
      * @param data The data for the request.
-     * @param data.dishId
-     * @returns unknown Successful Response
+     * @param data.categoryId
+     * @param data.isActive
+     * @param data.skip
+     * @param data.limit
+     * @returns DishPublic Successful Response
      * @throws ApiError
      */
-    public static readDishSkus(data: MenuReadDishSkusData): CancelablePromise<MenuReadDishSkusResponse> {
+    public static readDishes(data: MenuReadDishesData = {}): CancelablePromise<MenuReadDishesResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/menu/dishes/{dish_id}/skus',
+            url: '/api/v1/menu/dishes',
+            query: {
+                category_id: data.categoryId,
+                is_active: data.isActive,
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Dish
+     * Create a dish.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns DishPublic Successful Response
+     * @throws ApiError
+     */
+    public static createDish(data: MenuCreateDishData): CancelablePromise<MenuCreateDishResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/menu/dishes',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Dish
+     * Update a dish.
+     * @param data The data for the request.
+     * @param data.dishId
+     * @param data.requestBody
+     * @returns DishPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateDish(data: MenuUpdateDishData): CancelablePromise<MenuUpdateDishResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/menu/dishes/{dish_id}',
+            path: {
+                dish_id: data.dishId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Dish
+     * Delete a dish.
+     * @param data The data for the request.
+     * @param data.dishId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deleteDish(data: MenuDeleteDishData): CancelablePromise<MenuDeleteDishResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/menu/dishes/{dish_id}',
             path: {
                 dish_id: data.dishId
             },
@@ -453,15 +566,96 @@ export class MenuService {
     }
     
     /**
-     * Sync Menu
-     * Reserved endpoint for menu sync jobs (skeleton).
+     * Read Dish Skus
+     * Retrieve SKU list for a dish.
+     * @param data The data for the request.
+     * @param data.dishId
+     * @param data.isActive
+     * @returns DishSkuPublic Successful Response
+     * @throws ApiError
+     */
+    public static readDishSkus(data: MenuReadDishSkusData): CancelablePromise<MenuReadDishSkusResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/menu/dishes/{dish_id}/skus',
+            path: {
+                dish_id: data.dishId
+            },
+            query: {
+                is_active: data.isActive
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Dish Sku
+     * Create a dish SKU.
+     * @param data The data for the request.
+     * @param data.dishId
+     * @param data.requestBody
+     * @returns DishSkuPublic Successful Response
+     * @throws ApiError
+     */
+    public static createDishSku(data: MenuCreateDishSkuData): CancelablePromise<MenuCreateDishSkuResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/menu/dishes/{dish_id}/skus',
+            path: {
+                dish_id: data.dishId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Dish Sku
+     * Update a dish SKU.
+     * @param data The data for the request.
+     * @param data.skuId
+     * @param data.requestBody
+     * @returns DishSkuPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateDishSku(data: MenuUpdateDishSkuData): CancelablePromise<MenuUpdateDishSkuResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/menu/skus/{sku_id}',
+            path: {
+                sku_id: data.skuId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Dish Sku
+     * Delete a dish SKU.
+     * @param data The data for the request.
+     * @param data.skuId
      * @returns Message Successful Response
      * @throws ApiError
      */
-    public static syncMenu(): CancelablePromise<MenuSyncMenuResponse> {
+    public static deleteDishSku(data: MenuDeleteDishSkuData): CancelablePromise<MenuDeleteDishSkuResponse> {
         return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/menu/sync'
+            method: 'DELETE',
+            url: '/api/v1/menu/skus/{sku_id}',
+            path: {
+                sku_id: data.skuId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
         });
     }
 }

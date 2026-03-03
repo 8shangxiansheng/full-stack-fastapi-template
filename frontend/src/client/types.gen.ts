@@ -38,6 +38,73 @@ export type CartItemUpdate = {
     quantity: number;
 };
 
+export type CategoryCreate = {
+    name: string;
+    sort_order?: number;
+    is_active?: boolean;
+};
+
+export type CategoryPublic = {
+    id: string;
+    name: string;
+    sort_order: number;
+    is_active: boolean;
+    created_at?: (string | null);
+};
+
+export type CategoryUpdate = {
+    name?: (string | null);
+    sort_order?: (number | null);
+    is_active?: (boolean | null);
+};
+
+export type DishCreate = {
+    category_id: string;
+    name: string;
+    description?: (string | null);
+    is_active?: boolean;
+};
+
+export type DishPublic = {
+    id: string;
+    category_id: string;
+    name: string;
+    description?: (string | null);
+    is_active: boolean;
+    created_at?: (string | null);
+};
+
+export type DishSkuCreate = {
+    name: string;
+    price: (number | string);
+    stock?: number;
+    is_active?: boolean;
+};
+
+export type DishSkuPublic = {
+    id: string;
+    dish_id: string;
+    name: string;
+    price: string;
+    stock: number;
+    is_active: boolean;
+    created_at?: (string | null);
+};
+
+export type DishSkuUpdate = {
+    name?: (string | null);
+    price?: (number | string | null);
+    stock?: (number | null);
+    is_active?: (boolean | null);
+};
+
+export type DishUpdate = {
+    category_id?: (string | null);
+    name?: (string | null);
+    description?: (string | null);
+    is_active?: (boolean | null);
+};
+
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
 };
@@ -266,25 +333,84 @@ export type LoginRecoverPasswordHtmlContentData = {
 export type LoginRecoverPasswordHtmlContentResponse = (string);
 
 export type MenuReadCategoriesData = {
-    isActive?: boolean;
+    isActive?: (boolean | null);
 };
 
-export type MenuReadCategoriesResponse = (unknown);
+export type MenuReadCategoriesResponse = (Array<CategoryPublic>);
+
+export type MenuCreateCategoryData = {
+    requestBody: CategoryCreate;
+};
+
+export type MenuCreateCategoryResponse = (CategoryPublic);
+
+export type MenuUpdateCategoryData = {
+    categoryId: string;
+    requestBody: CategoryUpdate;
+};
+
+export type MenuUpdateCategoryResponse = (CategoryPublic);
+
+export type MenuDeleteCategoryData = {
+    categoryId: string;
+};
+
+export type MenuDeleteCategoryResponse = (Message);
 
 export type MenuReadDishesData = {
     categoryId?: (string | null);
-    isActive?: boolean;
+    isActive?: (boolean | null);
+    limit?: number;
+    skip?: number;
 };
 
-export type MenuReadDishesResponse = (unknown);
+export type MenuReadDishesResponse = (Array<DishPublic>);
 
-export type MenuReadDishSkusData = {
+export type MenuCreateDishData = {
+    requestBody: DishCreate;
+};
+
+export type MenuCreateDishResponse = (DishPublic);
+
+export type MenuUpdateDishData = {
+    dishId: string;
+    requestBody: DishUpdate;
+};
+
+export type MenuUpdateDishResponse = (DishPublic);
+
+export type MenuDeleteDishData = {
     dishId: string;
 };
 
-export type MenuReadDishSkusResponse = (unknown);
+export type MenuDeleteDishResponse = (Message);
 
-export type MenuSyncMenuResponse = (Message);
+export type MenuReadDishSkusData = {
+    dishId: string;
+    isActive?: (boolean | null);
+};
+
+export type MenuReadDishSkusResponse = (Array<DishSkuPublic>);
+
+export type MenuCreateDishSkuData = {
+    dishId: string;
+    requestBody: DishSkuCreate;
+};
+
+export type MenuCreateDishSkuResponse = (DishSkuPublic);
+
+export type MenuUpdateDishSkuData = {
+    requestBody: DishSkuUpdate;
+    skuId: string;
+};
+
+export type MenuUpdateDishSkuResponse = (DishSkuPublic);
+
+export type MenuDeleteDishSkuData = {
+    skuId: string;
+};
+
+export type MenuDeleteDishSkuResponse = (Message);
 
 export type OrdersReadOrdersResponse = (unknown);
 
