@@ -132,6 +132,25 @@ def delete_address(
     session.commit()
 
     if was_default:
+        _unset_other_default_addresses(session, current_user.id)
+        session.commit()
+
+        next_address = session.exec(
+            select(Address)
+            .where(Address.user_id == current_user.id)
+            .order_by(col(Address.created_at).desc())
+        ).first()
+        if next_address:
+            next_address.is_default = True
+            session.add(next_address)
+            session.commit()
+    else:
+        current_default = session.exec(
+            select(Address).where(Address.user_id == current_user.id, Address.is_default)
+        ).first()
+        if current_default:
+            return Message(message="Address deleted successfully")
+
         next_address = session.exec(
             select(Address)
             .where(Address.user_id == current_user.id)

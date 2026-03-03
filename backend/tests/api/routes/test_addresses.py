@@ -100,6 +100,7 @@ def test_delete_address_promote_latest_default(
     )
     assert response.status_code == 200
 
+    db.expire_all()
     promoted = db.get(Address, second.id)
     if not promoted:
         raise Exception("Promoted address not found")
