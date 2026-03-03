@@ -11,6 +11,7 @@ import { OrdersService, PaymentsService } from "@/client"
 import PendingItems from "@/components/Pending/PendingItems"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
 
@@ -24,6 +25,75 @@ function getOrdersQueryOptions() {
 function formatAmount(value: string | number) {
   const amount = typeof value === "string" ? Number(value) : value
   return Number.isFinite(amount) ? amount.toFixed(2) : "0.00"
+}
+
+type OrderAction = {
+  event: string
+  label: string
+  variant: "default" | "outline" | "destructive" | "secondary"
+}
+
+function getOrderActions(status: string, isSuperuser: boolean): OrderAction[] {
+  if (isSuperuser) {
+    const merchantActions: Record<string, OrderAction[]> = {
+      paid: [{ event: "merchant_accept", label: "Accept", variant: "default" }],
+      accepted: [
+        {
+          event: "start_preparing",
+          label: "Start Preparing",
+          variant: "default",
+        },
+      ],
+      preparing: [
+        {
+          event: "ready_for_delivery",
+          label: "Ready For Delivery",
+          variant: "default",
+        },
+      ],
+      ready_for_delivery: [
+        { event: "dispatch", label: "Dispatch", variant: "default" },
+      ],
+      delivering: [
+        { event: "complete", label: "Complete", variant: "default" },
+      ],
+      refund_pending: [
+        {
+          event: "approve_refund",
+          label: "Approve Refund",
+          variant: "secondary",
+        },
+        {
+          event: "reject_refund",
+          label: "Reject Refund",
+          variant: "destructive",
+        },
+      ],
+      pending_payment: [
+        { event: "cancel", label: "Cancel", variant: "destructive" },
+      ],
+    }
+    return merchantActions[status] ?? []
+  }
+
+  if (status === "pending_payment") {
+    return [{ event: "cancel", label: "Cancel", variant: "destructive" }]
+  }
+  if (
+    [
+      "paid",
+      "accepted",
+      "preparing",
+      "ready_for_delivery",
+      "delivering",
+      "completed",
+    ].includes(status)
+  ) {
+    return [
+      { event: "request_refund", label: "Request Refund", variant: "outline" },
+    ]
+  }
+  return []
 }
 
 export const Route = createFileRoute("/_layout/orders")({
@@ -40,6 +110,7 @@ export const Route = createFileRoute("/_layout/orders")({
 function OrdersContent() {
   const queryClient = useQueryClient()
   const { showErrorToast, showSuccessToast } = useCustomToast()
+  const { user: currentUser } = useAuth()
   const { data: orders } = useSuspenseQuery(getOrdersQueryOptions())
 
   const payMutation = useMutation({
@@ -109,34 +180,37 @@ function OrdersContent() {
             </div>
             <Badge variant="secondary">{order.status}</Badge>
           </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={
-                payMutation.isPending ||
-                statusMutation.isPending ||
-                order.status !== "pending_payment"
-              }
-              onClick={() => payMutation.mutate(order.id)}
-            >
-              Pay
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              disabled={
-                statusMutation.isPending || order.status !== "pending_payment"
-              }
-              onClick={() =>
-                statusMutation.mutate({
-                  orderId: order.id,
-                  event: "cancel",
-                })
-              }
-            >
-              Cancel
-            </Button>
+          <div className="flex flex-wrap gap-2">
+            {!currentUser?.is_superuser &&
+              order.status === "pending_payment" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={payMutation.isPending || statusMutation.isPending}
+                  onClick={() => payMutation.mutate(order.id)}
+                >
+                  Pay
+                </Button>
+              )}
+            {getOrderActions(
+              order.status,
+              currentUser?.is_superuser ?? false,
+            ).map((action) => (
+              <Button
+                key={`${order.id}-${action.event}`}
+                variant={action.variant}
+                size="sm"
+                disabled={statusMutation.isPending || payMutation.isPending}
+                onClick={() =>
+                  statusMutation.mutate({
+                    orderId: order.id,
+                    event: action.event,
+                  })
+                }
+              >
+                {action.label}
+              </Button>
+            ))}
           </div>
         </div>
       ))}

@@ -68,6 +68,18 @@ class OrderDetailPublic(OrderPublic):
     status_logs: list[OrderStatusLogPublic]
 
 
+SUPERUSER_ONLY_EVENTS = {
+    "merchant_accept",
+    "start_preparing",
+    "ready_for_delivery",
+    "dispatch",
+    "complete",
+    "approve_refund",
+    "reject_refund",
+}
+
+USER_ALLOWED_EVENTS = {"cancel", "request_refund"}
+
 ORDER_STATUS_TRANSITIONS: dict[str, dict[OrderStatus, OrderStatus]] = {
     "pay": {OrderStatus.PENDING_PAYMENT: OrderStatus.PAID},
     "merchant_accept": {OrderStatus.PAID: OrderStatus.ACCEPTED},
@@ -128,13 +140,17 @@ def _generate_order_no() -> str:
 
 
 @router.get("/", response_model=list[OrderPublic])
-def read_orders(session: SessionDep, current_user: CurrentUser) -> Any:
+def read_orders(
+    session: SessionDep,
+    current_user: CurrentUser,
+    status: OrderStatus | None = None,
+) -> Any:
     """Retrieve order list."""
-    statement = (
-        select(Order)
-        .where(Order.user_id == current_user.id)
-        .order_by(col(Order.created_at).desc())
-    )
+    statement = select(Order).order_by(col(Order.created_at).desc())
+    if not current_user.is_superuser:
+        statement = statement.where(Order.user_id == current_user.id)
+    if status:
+        statement = statement.where(Order.status == status)
     return session.exec(statement).all()
 
 
@@ -237,6 +253,15 @@ def change_order_status(
     """Change order status by event."""
     order = _load_order_or_404(session, order_id)
     _check_order_owner(order, current_user)
+
+    if body.event in SUPERUSER_ONLY_EVENTS and not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    if (
+        body.event not in SUPERUSER_ONLY_EVENTS
+        and body.event not in USER_ALLOWED_EVENTS
+        and not current_user.is_superuser
+    ):
+        raise HTTPException(status_code=403, detail="Not enough permissions")
 
     transitions = ORDER_STATUS_TRANSITIONS.get(body.event)
     if not transitions:

@@ -498,6 +498,10 @@ export type MenuDeleteDishSkuData = {
 
 export type MenuDeleteDishSkuResponse = (Message);
 
+export type OrdersReadOrdersData = {
+    status?: (OrderStatus | null);
+};
+
 export type OrdersReadOrdersResponse = (Array<OrderPublic>);
 
 export type OrdersCreateOrderData = {

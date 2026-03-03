@@ -156,5 +156,55 @@ def test_change_order_status(
         headers=normal_user_token_headers,
         json={"event": "pay"},
     )
-    assert invalid_response.status_code == 400
-    assert invalid_response.json()["detail"] == "Invalid status transition"
+    assert invalid_response.status_code == 403
+    assert invalid_response.json()["detail"] == "Not enough permissions"
+
+
+def test_superuser_read_orders_all_users(
+    client: TestClient,
+    normal_user_token_headers: dict[str, str],
+    superuser_token_headers: dict[str, str],
+    db: Session,
+) -> None:
+    _create_order(client, db, normal_user_token_headers, settings.EMAIL_TEST_USER)
+    other_user = create_random_user(db)
+    other_headers = authentication_token_from_email(
+        client=client,
+        email=other_user.email,
+        db=db,
+    )
+    _create_order(client, db, other_headers, other_user.email)
+
+    response = client.get(
+        f"{settings.API_V1_STR}/orders/",
+        headers=superuser_token_headers,
+    )
+    assert response.status_code == 200
+    orders = response.json()
+    user_ids = {order["user_id"] for order in orders}
+    assert len(user_ids) >= 2
+
+
+def test_superuser_can_run_merchant_event(
+    client: TestClient,
+    normal_user_token_headers: dict[str, str],
+    superuser_token_headers: dict[str, str],
+    db: Session,
+) -> None:
+    order_body, _ = _create_order(client, db, normal_user_token_headers, settings.EMAIL_TEST_USER)
+
+    pay_response = client.post(
+        f"{settings.API_V1_STR}/orders/{order_body['id']}/status",
+        headers=superuser_token_headers,
+        json={"event": "pay"},
+    )
+    assert pay_response.status_code == 200
+    assert pay_response.json()["status"] == "paid"
+
+    accept_response = client.post(
+        f"{settings.API_V1_STR}/orders/{order_body['id']}/status",
+        headers=superuser_token_headers,
+        json={"event": "merchant_accept"},
+    )
+    assert accept_response.status_code == 200
+    assert accept_response.json()["status"] == "accepted"
