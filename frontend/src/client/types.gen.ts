@@ -34,8 +34,25 @@ export type CartItemAdd = {
     quantity?: number;
 };
 
+export type CartItemPublic = {
+    id: string;
+    dish_sku_id: string;
+    dish_name: string;
+    sku_name: string;
+    unit_price: string;
+    quantity: number;
+    line_amount: string;
+    stock: number;
+    is_active: boolean;
+};
+
 export type CartItemUpdate = {
     quantity: number;
+};
+
+export type CartPublic = {
+    items: Array<CartItemPublic>;
+    total_amount: string;
 };
 
 export type CategoryCreate = {
@@ -251,7 +268,7 @@ export type AddressesDeleteAddressData = {
 
 export type AddressesDeleteAddressResponse = (Message);
 
-export type CartReadCartResponse = (unknown);
+export type CartReadCartResponse = (CartPublic);
 
 export type CartAddCartItemData = {
     requestBody: CartItemAdd;

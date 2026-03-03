@@ -88,8 +88,8 @@ export class AddressesService {
 export class CartService {
     /**
      * Read Cart
-     * Retrieve current user's cart (skeleton).
-     * @returns unknown Successful Response
+     * Retrieve current user's cart.
+     * @returns CartPublic Successful Response
      * @throws ApiError
      */
     public static readCart(): CancelablePromise<CartReadCartResponse> {
@@ -101,7 +101,7 @@ export class CartService {
     
     /**
      * Add Cart Item
-     * Add an item to cart (skeleton).
+     * Add an item to cart, merge quantity when same SKU exists.
      * @param data The data for the request.
      * @param data.requestBody
      * @returns Message Successful Response
@@ -121,7 +121,7 @@ export class CartService {
     
     /**
      * Clear Cart
-     * Clear all cart items (skeleton).
+     * Clear all cart items for current user.
      * @returns Message Successful Response
      * @throws ApiError
      */
@@ -134,7 +134,7 @@ export class CartService {
     
     /**
      * Update Cart Item
-     * Update cart item quantity (skeleton).
+     * Update cart item quantity.
      * @param data The data for the request.
      * @param data.cartItemId
      * @param data.requestBody
@@ -158,7 +158,7 @@ export class CartService {
     
     /**
      * Delete Cart Item
-     * Delete a cart item (skeleton).
+     * Delete a cart item.
      * @param data The data for the request.
      * @param data.cartItemId
      * @returns Message Successful Response

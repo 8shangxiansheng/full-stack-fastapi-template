@@ -209,6 +209,54 @@ export const CartItemAddSchema = {
     title: 'CartItemAdd'
 } as const;
 
+export const CartItemPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        dish_sku_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Dish Sku Id'
+        },
+        dish_name: {
+            type: 'string',
+            title: 'Dish Name'
+        },
+        sku_name: {
+            type: 'string',
+            title: 'Sku Name'
+        },
+        unit_price: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Unit Price'
+        },
+        quantity: {
+            type: 'integer',
+            title: 'Quantity'
+        },
+        line_amount: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Line Amount'
+        },
+        stock: {
+            type: 'integer',
+            title: 'Stock'
+        },
+        is_active: {
+            type: 'boolean',
+            title: 'Is Active'
+        }
+    },
+    type: 'object',
+    required: ['id', 'dish_sku_id', 'dish_name', 'sku_name', 'unit_price', 'quantity', 'line_amount', 'stock', 'is_active'],
+    title: 'CartItemPublic'
+} as const;
+
 export const CartItemUpdateSchema = {
     properties: {
         quantity: {
@@ -220,6 +268,26 @@ export const CartItemUpdateSchema = {
     type: 'object',
     required: ['quantity'],
     title: 'CartItemUpdate'
+} as const;
+
+export const CartPublicSchema = {
+    properties: {
+        items: {
+            items: {
+                '$ref': '#/components/schemas/CartItemPublic'
+            },
+            type: 'array',
+            title: 'Items'
+        },
+        total_amount: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Total Amount'
+        }
+    },
+    type: 'object',
+    required: ['items', 'total_amount'],
+    title: 'CartPublic'
 } as const;
 
 export const CategoryCreateSchema = {
