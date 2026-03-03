@@ -10,6 +10,11 @@ export type AddressCreate = {
     is_default?: boolean;
 };
 
+export type AddressOverview = {
+    total: number;
+    default_count: number;
+};
+
 export type AddressPublic = {
     id: string;
     user_id: string;
@@ -63,6 +68,11 @@ export type CartItemUpdate = {
     quantity: number;
 };
 
+export type CartOverview = {
+    items_count: number;
+    total_amount: string;
+};
+
 export type CartPublic = {
     items: Array<CartItemPublic>;
     total_amount: string;
@@ -86,6 +96,16 @@ export type CategoryUpdate = {
     name?: (string | null);
     sort_order?: (number | null);
     is_active?: (boolean | null);
+};
+
+export type DashboardOverview = {
+    scope: string;
+    menu: MenuOverview;
+    addresses: AddressOverview;
+    cart: CartOverview;
+    orders: OrdersOverview;
+    payments: PaymentsOverview;
+    recent_orders: Array<RecentOrder>;
 };
 
 export type DishCreate = {
@@ -162,6 +182,15 @@ export type ItemUpdate = {
     description?: (string | null);
 };
 
+export type MenuOverview = {
+    categories_total: number;
+    categories_active: number;
+    dishes_total: number;
+    dishes_active: number;
+    skus_total: number;
+    skus_active: number;
+};
+
 export type Message = {
     message: string;
 };
@@ -209,6 +238,13 @@ export type OrderPublic = {
     created_at?: (string | null);
 };
 
+export type OrdersOverview = {
+    total: number;
+    today: number;
+    realized_gmv: string;
+    status_breakdown: Array<StatusCount>;
+};
+
 export type OrderStatus = 'pending_payment' | 'paid' | 'accepted' | 'preparing' | 'ready_for_delivery' | 'delivering' | 'completed' | 'cancelled' | 'refund_pending' | 'refunded' | 'refund_rejected';
 
 export type OrderStatusChange = {
@@ -246,6 +282,12 @@ export type PaymentCreatePublic = {
     status: PaymentStatus;
 };
 
+export type PaymentsOverview = {
+    total: number;
+    success_amount: string;
+    status_breakdown: Array<StatusCount>;
+};
+
 export type PaymentStatus = 'pending' | 'success' | 'failed' | 'refunded';
 
 export type PrivateUserCreate = {
@@ -253,6 +295,19 @@ export type PrivateUserCreate = {
     password: string;
     full_name: string;
     is_verified?: boolean;
+};
+
+export type RecentOrder = {
+    id: string;
+    order_no: string;
+    status: OrderStatus;
+    total_amount: string;
+    created_at?: (string | null);
+};
+
+export type StatusCount = {
+    status: string;
+    count: number;
 };
 
 export type Token = {
@@ -359,6 +414,8 @@ export type CartDeleteCartItemData = {
 };
 
 export type CartDeleteCartItemResponse = (Message);
+
+export type DashboardReadDashboardOverviewResponse = (DashboardOverview);
 
 export type ItemsReadItemsData = {
     limit?: number;

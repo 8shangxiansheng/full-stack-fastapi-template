@@ -43,6 +43,22 @@ export const AddressCreateSchema = {
     title: 'AddressCreate'
 } as const;
 
+export const AddressOverviewSchema = {
+    properties: {
+        total: {
+            type: 'integer',
+            title: 'Total'
+        },
+        default_count: {
+            type: 'integer',
+            title: 'Default Count'
+        }
+    },
+    type: 'object',
+    required: ['total', 'default_count'],
+    title: 'AddressOverview'
+} as const;
+
 export const AddressPublicSchema = {
     properties: {
         id: {
@@ -328,6 +344,23 @@ export const CartItemUpdateSchema = {
     title: 'CartItemUpdate'
 } as const;
 
+export const CartOverviewSchema = {
+    properties: {
+        items_count: {
+            type: 'integer',
+            title: 'Items Count'
+        },
+        total_amount: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Total Amount'
+        }
+    },
+    type: 'object',
+    required: ['items_count', 'total_amount'],
+    title: 'CartOverview'
+} as const;
+
 export const CartPublicSchema = {
     properties: {
         items: {
@@ -449,6 +482,40 @@ export const CategoryUpdateSchema = {
     },
     type: 'object',
     title: 'CategoryUpdate'
+} as const;
+
+export const DashboardOverviewSchema = {
+    properties: {
+        scope: {
+            type: 'string',
+            title: 'Scope'
+        },
+        menu: {
+            '$ref': '#/components/schemas/MenuOverview'
+        },
+        addresses: {
+            '$ref': '#/components/schemas/AddressOverview'
+        },
+        cart: {
+            '$ref': '#/components/schemas/CartOverview'
+        },
+        orders: {
+            '$ref': '#/components/schemas/OrdersOverview'
+        },
+        payments: {
+            '$ref': '#/components/schemas/PaymentsOverview'
+        },
+        recent_orders: {
+            items: {
+                '$ref': '#/components/schemas/RecentOrder'
+            },
+            type: 'array',
+            title: 'Recent Orders'
+        }
+    },
+    type: 'object',
+    required: ['scope', 'menu', 'addresses', 'cart', 'orders', 'payments', 'recent_orders'],
+    title: 'DashboardOverview'
 } as const;
 
 export const DishCreateSchema = {
@@ -874,6 +941,38 @@ export const ItemsPublicSchema = {
     title: 'ItemsPublic'
 } as const;
 
+export const MenuOverviewSchema = {
+    properties: {
+        categories_total: {
+            type: 'integer',
+            title: 'Categories Total'
+        },
+        categories_active: {
+            type: 'integer',
+            title: 'Categories Active'
+        },
+        dishes_total: {
+            type: 'integer',
+            title: 'Dishes Total'
+        },
+        dishes_active: {
+            type: 'integer',
+            title: 'Dishes Active'
+        },
+        skus_total: {
+            type: 'integer',
+            title: 'Skus Total'
+        },
+        skus_active: {
+            type: 'integer',
+            title: 'Skus Active'
+        }
+    },
+    type: 'object',
+    required: ['categories_total', 'categories_active', 'dishes_total', 'dishes_active', 'skus_total', 'skus_active'],
+    title: 'MenuOverview'
+} as const;
+
 export const MessageSchema = {
     properties: {
         message: {
@@ -1198,6 +1297,34 @@ export const OrderStatusLogPublicSchema = {
     title: 'OrderStatusLogPublic'
 } as const;
 
+export const OrdersOverviewSchema = {
+    properties: {
+        total: {
+            type: 'integer',
+            title: 'Total'
+        },
+        today: {
+            type: 'integer',
+            title: 'Today'
+        },
+        realized_gmv: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Realized Gmv'
+        },
+        status_breakdown: {
+            items: {
+                '$ref': '#/components/schemas/StatusCount'
+            },
+            type: 'array',
+            title: 'Status Breakdown'
+        }
+    },
+    type: 'object',
+    required: ['total', 'today', 'realized_gmv', 'status_breakdown'],
+    title: 'OrdersOverview'
+} as const;
+
 export const PaymentCallbackSchema = {
     properties: {
         provider: {
@@ -1285,6 +1412,30 @@ export const PaymentStatusSchema = {
     title: 'PaymentStatus'
 } as const;
 
+export const PaymentsOverviewSchema = {
+    properties: {
+        total: {
+            type: 'integer',
+            title: 'Total'
+        },
+        success_amount: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Success Amount'
+        },
+        status_breakdown: {
+            items: {
+                '$ref': '#/components/schemas/StatusCount'
+            },
+            type: 'array',
+            title: 'Status Breakdown'
+        }
+    },
+    type: 'object',
+    required: ['total', 'success_amount', 'status_breakdown'],
+    title: 'PaymentsOverview'
+} as const;
+
 export const PrivateUserCreateSchema = {
     properties: {
         email: {
@@ -1308,6 +1459,58 @@ export const PrivateUserCreateSchema = {
     type: 'object',
     required: ['email', 'password', 'full_name'],
     title: 'PrivateUserCreate'
+} as const;
+
+export const RecentOrderSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        order_no: {
+            type: 'string',
+            title: 'Order No'
+        },
+        status: {
+            '$ref': '#/components/schemas/OrderStatus'
+        },
+        total_amount: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Total Amount'
+        },
+        created_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'order_no', 'status', 'total_amount'],
+    title: 'RecentOrder'
+} as const;
+
+export const StatusCountSchema = {
+    properties: {
+        status: {
+            type: 'string',
+            title: 'Status'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['status', 'count'],
+    title: 'StatusCount'
 } as const;
 
 export const TokenSchema = {

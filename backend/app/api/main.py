@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.api.routes import (
     addresses,
     cart,
+    dashboard,
     items,
     login,
     menu,
@@ -24,6 +25,7 @@ api_router.include_router(cart.router)
 api_router.include_router(addresses.router)
 api_router.include_router(orders.router)
 api_router.include_router(payments.router)
+api_router.include_router(dashboard.router)
 
 
 if settings.ENVIRONMENT == "local":
