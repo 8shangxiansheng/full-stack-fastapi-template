@@ -743,10 +743,10 @@ export class OrdersService {
 export class PaymentsService {
     /**
      * Create Payment
-     * Create payment request (skeleton).
+     * Create payment request for an order.
      * @param data The data for the request.
      * @param data.requestBody
-     * @returns Message Successful Response
+     * @returns PaymentCreatePublic Successful Response
      * @throws ApiError
      */
     public static createPayment(data: PaymentsCreatePaymentData): CancelablePromise<PaymentsCreatePaymentResponse> {
@@ -763,10 +763,13 @@ export class PaymentsService {
     
     /**
      * Payment Callback
-     * Handle payment callback (skeleton).
+     * Handle payment callback.
+     *
+     * Payload format:
+     * {"out_trade_no":"...", "status":"success|failed|refunded"}
      * @param data The data for the request.
      * @param data.requestBody
-     * @returns Message Successful Response
+     * @returns PaymentCreatePublic Successful Response
      * @throws ApiError
      */
     public static paymentCallback(data: PaymentsPaymentCallbackData): CancelablePromise<PaymentsPaymentCallbackResponse> {

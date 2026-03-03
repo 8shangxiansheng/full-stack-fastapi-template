@@ -1250,6 +1250,41 @@ export const PaymentCreateSchema = {
     title: 'PaymentCreate'
 } as const;
 
+export const PaymentCreatePublicSchema = {
+    properties: {
+        order_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Order Id'
+        },
+        provider: {
+            type: 'string',
+            title: 'Provider'
+        },
+        out_trade_no: {
+            type: 'string',
+            title: 'Out Trade No'
+        },
+        amount: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Amount'
+        },
+        status: {
+            '$ref': '#/components/schemas/PaymentStatus'
+        }
+    },
+    type: 'object',
+    required: ['order_id', 'provider', 'out_trade_no', 'amount', 'status'],
+    title: 'PaymentCreatePublic'
+} as const;
+
+export const PaymentStatusSchema = {
+    type: 'string',
+    enum: ['pending', 'success', 'failed', 'refunded'],
+    title: 'PaymentStatus'
+} as const;
+
 export const PrivateUserCreateSchema = {
     properties: {
         email: {

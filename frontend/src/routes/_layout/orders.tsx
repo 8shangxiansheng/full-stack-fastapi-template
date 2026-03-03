@@ -7,7 +7,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { Clock3 } from "lucide-react"
 import { Suspense } from "react"
 
-import { OrdersService } from "@/client"
+import { OrdersService, PaymentsService } from "@/client"
 import PendingItems from "@/components/Pending/PendingItems"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -41,6 +41,31 @@ function OrdersContent() {
   const queryClient = useQueryClient()
   const { showErrorToast, showSuccessToast } = useCustomToast()
   const { data: orders } = useSuspenseQuery(getOrdersQueryOptions())
+
+  const payMutation = useMutation({
+    mutationFn: async (orderId: string) => {
+      const payment = await PaymentsService.createPayment({
+        requestBody: { order_id: orderId, provider: "mockpay" },
+      })
+      await PaymentsService.paymentCallback({
+        requestBody: {
+          provider: "mockpay",
+          transaction_id: payment.out_trade_no,
+          payload: JSON.stringify({
+            out_trade_no: payment.out_trade_no,
+            status: "success",
+          }),
+        },
+      })
+    },
+    onSuccess: () => {
+      showSuccessToast("Payment completed")
+    },
+    onError: handleError.bind(showErrorToast),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] })
+    },
+  })
 
   const statusMutation = useMutation({
     mutationFn: ({ orderId, event }: { orderId: string; event: string }) =>
@@ -89,11 +114,11 @@ function OrdersContent() {
               variant="outline"
               size="sm"
               disabled={
-                statusMutation.isPending || order.status !== "pending_payment"
+                payMutation.isPending ||
+                statusMutation.isPending ||
+                order.status !== "pending_payment"
               }
-              onClick={() =>
-                statusMutation.mutate({ orderId: order.id, event: "pay" })
-              }
+              onClick={() => payMutation.mutate(order.id)}
             >
               Pay
             </Button>

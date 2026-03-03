@@ -238,6 +238,16 @@ export type PaymentCreate = {
     provider: string;
 };
 
+export type PaymentCreatePublic = {
+    order_id: string;
+    provider: string;
+    out_trade_no: string;
+    amount: string;
+    status: PaymentStatus;
+};
+
+export type PaymentStatus = 'pending' | 'success' | 'failed' | 'refunded';
+
 export type PrivateUserCreate = {
     email: string;
     password: string;
@@ -513,13 +523,13 @@ export type PaymentsCreatePaymentData = {
     requestBody: PaymentCreate;
 };
 
-export type PaymentsCreatePaymentResponse = (Message);
+export type PaymentsCreatePaymentResponse = (PaymentCreatePublic);
 
 export type PaymentsPaymentCallbackData = {
     requestBody: PaymentCallback;
 };
 
-export type PaymentsPaymentCallbackResponse = (Message);
+export type PaymentsPaymentCallbackResponse = (PaymentCreatePublic);
 
 export type PrivateCreateUserData = {
     requestBody: PrivateUserCreate;
