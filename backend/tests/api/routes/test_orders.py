@@ -176,8 +176,8 @@ def test_change_order_status(
         headers=normal_user_token_headers,
         json={"event": "pay"},
     )
-    assert pay_response.status_code == 200
-    assert pay_response.json()["status"] == "paid"
+    assert pay_response.status_code == 403
+    assert pay_response.json()["detail"] == "Not enough permissions"
 
     invalid_response = client.post(
         f"{settings.API_V1_STR}/orders/{order_body['id']}/status",
