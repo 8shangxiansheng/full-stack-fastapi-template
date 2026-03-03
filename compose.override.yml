@@ -95,14 +95,23 @@ services:
 
   frontend:
     restart: "no"
-    ports:
-      - "5173:80"
     build:
       context: .
-      dockerfile: frontend/Dockerfile
-      args:
-        - VITE_API_URL=http://localhost:8000
-        - NODE_ENV=development
+      dockerfile: frontend/Dockerfile.dev
+    working_dir: /app/frontend
+    command:
+      - sh
+      - -c
+      - bun install && bun run dev --host 0.0.0.0 --port 5173
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app/frontend
+      - frontend-node_modules:/app/frontend/node_modules
+    environment:
+      VITE_API_URL: http://localhost:8000
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
 
   playwright:
     build:
@@ -128,6 +137,9 @@ services:
       - ./frontend/test-results:/app/frontend/test-results
     ports:
       - 9323:9323
+
+volumes:
+  frontend-node_modules:
 
 networks:
   traefik-public:
