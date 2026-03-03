@@ -663,8 +663,8 @@ export class MenuService {
 export class OrdersService {
     /**
      * Read Orders
-     * Retrieve order list (skeleton).
-     * @returns unknown Successful Response
+     * Retrieve order list.
+     * @returns OrderPublic Successful Response
      * @throws ApiError
      */
     public static readOrders(): CancelablePromise<OrdersReadOrdersResponse> {
@@ -676,10 +676,10 @@ export class OrdersService {
     
     /**
      * Create Order
-     * Create order from cart (skeleton).
+     * Create order from current cart.
      * @param data The data for the request.
      * @param data.requestBody
-     * @returns Message Successful Response
+     * @returns OrderDetailPublic Successful Response
      * @throws ApiError
      */
     public static createOrder(data: OrdersCreateOrderData): CancelablePromise<OrdersCreateOrderResponse> {
@@ -696,10 +696,10 @@ export class OrdersService {
     
     /**
      * Read Order
-     * Retrieve order detail (skeleton).
+     * Retrieve order detail.
      * @param data The data for the request.
      * @param data.orderId
-     * @returns unknown Successful Response
+     * @returns OrderDetailPublic Successful Response
      * @throws ApiError
      */
     public static readOrder(data: OrdersReadOrderData): CancelablePromise<OrdersReadOrderResponse> {
@@ -717,11 +717,11 @@ export class OrdersService {
     
     /**
      * Change Order Status
-     * Change order status by event (skeleton).
+     * Change order status by event.
      * @param data The data for the request.
      * @param data.orderId
      * @param data.requestBody
-     * @returns Message Successful Response
+     * @returns OrderDetailPublic Successful Response
      * @throws ApiError
      */
     public static changeOrderStatus(data: OrdersChangeOrderStatusData): CancelablePromise<OrdersChangeOrderStatusResponse> {

@@ -1,15 +1,23 @@
 import {
   useMutation,
+  useQuery,
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query"
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { ShoppingCart, Trash2 } from "lucide-react"
-import { Suspense } from "react"
+import { Suspense, useMemo, useState } from "react"
 
-import { CartService } from "@/client"
+import { AddressesService, CartService, OrdersService } from "@/client"
 import PendingItems from "@/components/Pending/PendingItems"
 import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
 
@@ -39,7 +47,22 @@ export const Route = createFileRoute("/_layout/cart")({
 function CartContent() {
   const queryClient = useQueryClient()
   const { showErrorToast, showSuccessToast } = useCustomToast()
+  const navigate = useNavigate()
   const { data } = useSuspenseQuery(getCartQueryOptions())
+  const { data: addresses = [] } = useQuery({
+    queryFn: () => AddressesService.readAddresses(),
+    queryKey: ["addresses"],
+  })
+  const [selectedAddressId, setSelectedAddressId] = useState<string>("")
+
+  const defaultAddressId = useMemo(() => {
+    if (selectedAddressId) {
+      return selectedAddressId
+    }
+    const first =
+      addresses.find((address) => address.is_default) ?? addresses[0]
+    return first?.id ?? ""
+  }, [addresses, selectedAddressId])
 
   const updateMutation = useMutation({
     mutationFn: ({
@@ -83,6 +106,20 @@ function CartContent() {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["cart"] })
     },
+  })
+
+  const createOrderMutation = useMutation({
+    mutationFn: (addressId: string) =>
+      OrdersService.createOrder({
+        requestBody: { address_id: addressId },
+      }),
+    onSuccess: () => {
+      showSuccessToast("Order created")
+      queryClient.invalidateQueries({ queryKey: ["cart"] })
+      queryClient.invalidateQueries({ queryKey: ["orders"] })
+      void navigate({ to: "/orders" })
+    },
+    onError: handleError.bind(showErrorToast),
   })
 
   if (data.items.length === 0) {
@@ -153,16 +190,50 @@ function CartContent() {
       ))}
 
       <div className="flex items-center justify-between rounded-lg border bg-muted/30 p-4">
-        <p className="text-lg font-semibold">
-          Total: ¥ {formatAmount(data.total_amount)}
-        </p>
-        <Button
-          variant="outline"
-          disabled={clearMutation.isPending}
-          onClick={() => clearMutation.mutate()}
-        >
-          Clear Cart
-        </Button>
+        <div className="space-y-3 w-full">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-lg font-semibold">
+              Total: ¥ {formatAmount(data.total_amount)}
+            </p>
+            <Button
+              variant="outline"
+              disabled={clearMutation.isPending}
+              onClick={() => clearMutation.mutate()}
+            >
+              Clear Cart
+            </Button>
+          </div>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
+            <Select
+              value={defaultAddressId}
+              onValueChange={setSelectedAddressId}
+              disabled={addresses.length === 0 || createOrderMutation.isPending}
+            >
+              <SelectTrigger className="w-full md:w-96">
+                <SelectValue placeholder="Select delivery address" />
+              </SelectTrigger>
+              <SelectContent>
+                {addresses.map((address) => (
+                  <SelectItem key={address.id} value={address.id}>
+                    {`${address.receiver_name} ${address.receiver_phone} | ${address.province}${address.city}${address.district}${address.detail}${address.is_default ? " (Default)" : ""}`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {addresses.length === 0 ? (
+              <Button asChild>
+                <Link to="/settings">Create Address First</Link>
+              </Button>
+            ) : (
+              <Button
+                disabled={createOrderMutation.isPending || !defaultAddressId}
+                onClick={() => createOrderMutation.mutate(defaultAddressId)}
+              >
+                Place Order
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )

@@ -175,9 +175,55 @@ export type OrderCreate = {
     address_id: string;
 };
 
+export type OrderDetailPublic = {
+    id: string;
+    user_id: string;
+    address_id: (string | null);
+    order_no: string;
+    status: OrderStatus;
+    total_amount: string;
+    paid_at?: (string | null);
+    created_at?: (string | null);
+    items: Array<OrderItemPublic>;
+    status_logs: Array<OrderStatusLogPublic>;
+};
+
+export type OrderItemPublic = {
+    id: string;
+    dish_sku_id: (string | null);
+    dish_name_snapshot: string;
+    sku_name_snapshot: string;
+    unit_price: string;
+    quantity: number;
+    line_amount: string;
+};
+
+export type OrderPublic = {
+    id: string;
+    user_id: string;
+    address_id: (string | null);
+    order_no: string;
+    status: OrderStatus;
+    total_amount: string;
+    paid_at?: (string | null);
+    created_at?: (string | null);
+};
+
+export type OrderStatus = 'pending_payment' | 'paid' | 'accepted' | 'preparing' | 'ready_for_delivery' | 'delivering' | 'completed' | 'cancelled' | 'refund_pending' | 'refunded' | 'refund_rejected';
+
 export type OrderStatusChange = {
     event: string;
     reason?: (string | null);
+};
+
+export type OrderStatusLogPublic = {
+    id: string;
+    from_status: (OrderStatus | null);
+    to_status: OrderStatus;
+    event: string;
+    actor: string;
+    reason: (string | null);
+    created_at?: (string | null);
 };
 
 export type PaymentCallback = {
@@ -442,26 +488,26 @@ export type MenuDeleteDishSkuData = {
 
 export type MenuDeleteDishSkuResponse = (Message);
 
-export type OrdersReadOrdersResponse = (unknown);
+export type OrdersReadOrdersResponse = (Array<OrderPublic>);
 
 export type OrdersCreateOrderData = {
     requestBody: OrderCreate;
 };
 
-export type OrdersCreateOrderResponse = (Message);
+export type OrdersCreateOrderResponse = (OrderDetailPublic);
 
 export type OrdersReadOrderData = {
     orderId: string;
 };
 
-export type OrdersReadOrderResponse = (unknown);
+export type OrdersReadOrderResponse = (OrderDetailPublic);
 
 export type OrdersChangeOrderStatusData = {
     orderId: string;
     requestBody: OrderStatusChange;
 };
 
-export type OrdersChangeOrderStatusResponse = (Message);
+export type OrdersChangeOrderStatusResponse = (OrderDetailPublic);
 
 export type PaymentsCreatePaymentData = {
     requestBody: PaymentCreate;

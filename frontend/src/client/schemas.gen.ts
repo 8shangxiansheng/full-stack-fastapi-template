@@ -917,6 +917,205 @@ export const OrderCreateSchema = {
     title: 'OrderCreate'
 } as const;
 
+export const OrderDetailPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        user_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'User Id'
+        },
+        address_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Address Id'
+        },
+        order_no: {
+            type: 'string',
+            title: 'Order No'
+        },
+        status: {
+            '$ref': '#/components/schemas/OrderStatus'
+        },
+        total_amount: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Total Amount'
+        },
+        paid_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Paid At'
+        },
+        created_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created At'
+        },
+        items: {
+            items: {
+                '$ref': '#/components/schemas/OrderItemPublic'
+            },
+            type: 'array',
+            title: 'Items'
+        },
+        status_logs: {
+            items: {
+                '$ref': '#/components/schemas/OrderStatusLogPublic'
+            },
+            type: 'array',
+            title: 'Status Logs'
+        }
+    },
+    type: 'object',
+    required: ['id', 'user_id', 'address_id', 'order_no', 'status', 'total_amount', 'items', 'status_logs'],
+    title: 'OrderDetailPublic'
+} as const;
+
+export const OrderItemPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        dish_sku_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Dish Sku Id'
+        },
+        dish_name_snapshot: {
+            type: 'string',
+            title: 'Dish Name Snapshot'
+        },
+        sku_name_snapshot: {
+            type: 'string',
+            title: 'Sku Name Snapshot'
+        },
+        unit_price: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Unit Price'
+        },
+        quantity: {
+            type: 'integer',
+            title: 'Quantity'
+        },
+        line_amount: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Line Amount'
+        }
+    },
+    type: 'object',
+    required: ['id', 'dish_sku_id', 'dish_name_snapshot', 'sku_name_snapshot', 'unit_price', 'quantity', 'line_amount'],
+    title: 'OrderItemPublic'
+} as const;
+
+export const OrderPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        user_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'User Id'
+        },
+        address_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Address Id'
+        },
+        order_no: {
+            type: 'string',
+            title: 'Order No'
+        },
+        status: {
+            '$ref': '#/components/schemas/OrderStatus'
+        },
+        total_amount: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Total Amount'
+        },
+        paid_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Paid At'
+        },
+        created_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'user_id', 'address_id', 'order_no', 'status', 'total_amount'],
+    title: 'OrderPublic'
+} as const;
+
+export const OrderStatusSchema = {
+    type: 'string',
+    enum: ['pending_payment', 'paid', 'accepted', 'preparing', 'ready_for_delivery', 'delivering', 'completed', 'cancelled', 'refund_pending', 'refunded', 'refund_rejected'],
+    title: 'OrderStatus'
+} as const;
+
 export const OrderStatusChangeSchema = {
     properties: {
         event: {
@@ -940,6 +1139,63 @@ export const OrderStatusChangeSchema = {
     type: 'object',
     required: ['event'],
     title: 'OrderStatusChange'
+} as const;
+
+export const OrderStatusLogPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        from_status: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/OrderStatus'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        to_status: {
+            '$ref': '#/components/schemas/OrderStatus'
+        },
+        event: {
+            type: 'string',
+            title: 'Event'
+        },
+        actor: {
+            type: 'string',
+            title: 'Actor'
+        },
+        reason: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Reason'
+        },
+        created_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'from_status', 'to_status', 'event', 'actor', 'reason'],
+    title: 'OrderStatusLogPublic'
 } as const;
 
 export const PaymentCallbackSchema = {
