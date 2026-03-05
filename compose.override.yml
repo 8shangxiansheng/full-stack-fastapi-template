@@ -110,6 +110,7 @@ services:
       - frontend-node_modules:/app/frontend/node_modules
     environment:
       VITE_API_URL: http://localhost:8000
+      VITE_PAYMENT_CALLBACK_SIGNING_SECRET: changethis
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"
 

@@ -1,14 +1,18 @@
 import uuid
 from datetime import datetime, timezone
 from decimal import Decimal
+import hmac
+from hashlib import sha256
 from json import JSONDecodeError, loads
+import time
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlmodel import col, select
 
 from app.api.deps import CurrentUser, SessionDep
+from app.core.config import settings
 from app.models import (
     Order,
     OrderStatus,
@@ -29,8 +33,9 @@ class PaymentCreate(BaseModel):
 class PaymentCallback(BaseModel):
     provider: str = Field(max_length=32)
     transaction_id: str = Field(max_length=128)
+    timestamp: int = Field(ge=0)
     payload: str
-    signature: str | None = Field(default=None, max_length=255)
+    signature: str = Field(max_length=255)
 
 
 class PaymentCreatePublic(BaseModel):
@@ -39,6 +44,14 @@ class PaymentCreatePublic(BaseModel):
     out_trade_no: str
     amount: Decimal
     status: PaymentStatus
+
+
+PAYMENT_STATUS_TRANSITIONS: dict[PaymentStatus, set[PaymentStatus]] = {
+    PaymentStatus.PENDING: {PaymentStatus.SUCCESS, PaymentStatus.FAILED},
+    PaymentStatus.SUCCESS: {PaymentStatus.REFUNDED},
+    PaymentStatus.FAILED: set(),
+    PaymentStatus.REFUNDED: set(),
+}
 
 
 def _load_order_or_404(session: SessionDep, order_id: uuid.UUID) -> Order:
@@ -55,6 +68,38 @@ def _check_order_owner(order: Order, current_user: CurrentUser) -> None:
 
 def _build_out_trade_no() -> str:
     return f"PT{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}{uuid.uuid4().hex[:8].upper()}"
+
+
+def _build_callback_signing_message(body: PaymentCallback) -> str:
+    return f"{body.provider}:{body.transaction_id}:{body.timestamp}:{body.payload}"
+
+
+def _verify_callback_timestamp(body: PaymentCallback) -> None:
+    now = int(time.time())
+    if abs(now - body.timestamp) > settings.PAYMENT_CALLBACK_TOLERANCE_SECONDS:
+        raise HTTPException(status_code=400, detail="Callback timestamp expired")
+
+
+def _verify_callback_signature(body: PaymentCallback) -> None:
+    message = _build_callback_signing_message(body)
+    expected_signature = hmac.new(
+        settings.PAYMENT_CALLBACK_SIGNING_SECRET.encode(),
+        message.encode(),
+        sha256,
+    ).hexdigest()
+    if not hmac.compare_digest(expected_signature, body.signature):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid callback signature",
+        )
+
+
+def _check_payment_transition(current: PaymentStatus, target: PaymentStatus) -> None:
+    if current == target:
+        return
+    allowed = PAYMENT_STATUS_TRANSITIONS.get(current, set())
+    if target not in allowed:
+        raise HTTPException(status_code=400, detail="Invalid payment status transition")
 
 
 @router.post("/create", response_model=PaymentCreatePublic)
@@ -114,16 +159,8 @@ def payment_callback(body: PaymentCallback, session: SessionDep) -> Any:
     Payload format:
     {"out_trade_no":"...", "status":"success|failed|refunded"}
     """
-    callback_log = PaymentCallbackLog(
-        provider=body.provider,
-        transaction_id=body.transaction_id,
-        payload=body.payload,
-        signature=body.signature,
-        processed=False,
-    )
-    session.add(callback_log)
-    session.commit()
-    session.refresh(callback_log)
+    _verify_callback_timestamp(body)
+    _verify_callback_signature(body)
 
     try:
         callback_data = loads(body.payload)
@@ -134,6 +171,28 @@ def payment_callback(body: PaymentCallback, session: SessionDep) -> Any:
     callback_status = callback_data.get("status")
     if not out_trade_no:
         raise HTTPException(status_code=400, detail="out_trade_no is required")
+
+    replayed = session.exec(
+        select(PaymentCallbackLog).where(
+            PaymentCallbackLog.provider == body.provider,
+            PaymentCallbackLog.transaction_id == body.transaction_id,
+            PaymentCallbackLog.payload == body.payload,
+            col(PaymentCallbackLog.processed).is_(True),
+        )
+    ).first()
+    if replayed:
+        raise HTTPException(status_code=409, detail="Callback replay detected")
+
+    callback_log = PaymentCallbackLog(
+        provider=body.provider,
+        transaction_id=body.transaction_id,
+        payload=body.payload,
+        signature=body.signature,
+        processed=False,
+    )
+    session.add(callback_log)
+    session.commit()
+    session.refresh(callback_log)
 
     payment = session.exec(
         select(PaymentRecord).where(
@@ -153,6 +212,7 @@ def payment_callback(body: PaymentCallback, session: SessionDep) -> Any:
         raise HTTPException(status_code=400, detail="Invalid callback status")
 
     target_status = status_map[callback_status]
+    _check_payment_transition(payment.status, target_status)
     if payment.status == target_status:
         callback_log.processed = True
         session.add(callback_log)

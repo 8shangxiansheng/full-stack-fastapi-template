@@ -265,8 +265,9 @@ export type OrderStatusLogPublic = {
 export type PaymentCallback = {
     provider: string;
     transaction_id: string;
+    timestamp: number;
     payload: string;
-    signature?: (string | null);
+    signature: string;
 };
 
 export type PaymentCreate = {

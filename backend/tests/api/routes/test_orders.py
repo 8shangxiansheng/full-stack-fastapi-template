@@ -1,5 +1,4 @@
 import uuid
-from json import dumps
 
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
@@ -8,6 +7,7 @@ from app.core.config import settings
 from app.models import DishSku, PaymentRecord, PaymentStatus, User
 from tests.utils.address import create_random_address
 from tests.utils.menu import create_random_dish_sku
+from tests.utils.payment import build_mockpay_callback_payload
 from tests.utils.user import authentication_token_from_email, create_random_user
 
 
@@ -66,12 +66,7 @@ def _pay_order(
 
     callback_response = client.post(
         f"{settings.API_V1_STR}/payments/callbacks",
-        json={
-            "provider": "mockpay",
-            "transaction_id": out_trade_no,
-            "payload": dumps({"out_trade_no": out_trade_no, "status": "success"}),
-            "signature": "test-signature",
-        },
+        json=build_mockpay_callback_payload(out_trade_no=out_trade_no),
     )
     assert callback_response.status_code == 200
 

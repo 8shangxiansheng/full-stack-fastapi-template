@@ -1337,25 +1337,23 @@ export const PaymentCallbackSchema = {
             maxLength: 128,
             title: 'Transaction Id'
         },
+        timestamp: {
+            type: 'integer',
+            minimum: 0,
+            title: 'Timestamp'
+        },
         payload: {
             type: 'string',
             title: 'Payload'
         },
         signature: {
-            anyOf: [
-                {
-                    type: 'string',
-                    maxLength: 255
-                },
-                {
-                    type: 'null'
-                }
-            ],
+            type: 'string',
+            maxLength: 255,
             title: 'Signature'
         }
     },
     type: 'object',
-    required: ['provider', 'transaction_id', 'payload'],
+    required: ['provider', 'transaction_id', 'timestamp', 'payload', 'signature'],
     title: 'PaymentCallback'
 } as const;
 

@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
     FRONTEND_HOST: str = "http://localhost:5173"
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
+    PAYMENT_CALLBACK_SIGNING_SECRET: str = "changethis"
+    PAYMENT_CALLBACK_TOLERANCE_SECONDS: int = 300
 
     BACKEND_CORS_ORIGINS: Annotated[
         list[AnyUrl] | str, BeforeValidator(parse_cors)
@@ -111,6 +113,9 @@ class Settings(BaseSettings):
         self._check_default_secret("POSTGRES_PASSWORD", self.POSTGRES_PASSWORD)
         self._check_default_secret(
             "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD
+        )
+        self._check_default_secret(
+            "PAYMENT_CALLBACK_SIGNING_SECRET", self.PAYMENT_CALLBACK_SIGNING_SECRET
         )
 
         return self

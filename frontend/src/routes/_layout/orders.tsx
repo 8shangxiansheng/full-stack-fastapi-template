@@ -36,6 +36,37 @@ function formatAmount(value: string | number) {
   return Number.isFinite(amount) ? amount.toFixed(2) : "0.00"
 }
 
+const CALLBACK_SIGNING_SECRET =
+  import.meta.env.VITE_PAYMENT_CALLBACK_SIGNING_SECRET ?? "changethis"
+
+function toHex(buffer: ArrayBuffer): string {
+  return Array.from(new Uint8Array(buffer))
+    .map((item) => item.toString(16).padStart(2, "0"))
+    .join("")
+}
+
+async function signMockpayCallback(params: {
+  provider: string
+  transactionId: string
+  timestamp: number
+  payload: string
+}): Promise<string> {
+  const signingText = `${params.provider}:${params.transactionId}:${params.timestamp}:${params.payload}`
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(CALLBACK_SIGNING_SECRET),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  )
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(signingText),
+  )
+  return toHex(signature)
+}
+
 type OrderAction = {
   event: string
   label: string
@@ -128,14 +159,24 @@ function OrdersContent() {
       const payment = await PaymentsService.createPayment({
         requestBody: { order_id: orderId, provider: "mockpay" },
       })
+      const payload = JSON.stringify({
+        out_trade_no: payment.out_trade_no,
+        status: "success",
+      })
+      const timestamp = Math.floor(Date.now() / 1000)
+      const signature = await signMockpayCallback({
+        provider: "mockpay",
+        transactionId: payment.out_trade_no,
+        timestamp,
+        payload,
+      })
       await PaymentsService.paymentCallback({
         requestBody: {
           provider: "mockpay",
           transaction_id: payment.out_trade_no,
-          payload: JSON.stringify({
-            out_trade_no: payment.out_trade_no,
-            status: "success",
-          }),
+          timestamp,
+          payload,
+          signature,
         },
       })
     },

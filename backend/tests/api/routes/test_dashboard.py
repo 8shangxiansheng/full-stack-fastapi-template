@@ -1,5 +1,3 @@
-from json import dumps
-
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
@@ -7,6 +5,7 @@ from app.core.config import settings
 from app.models import User
 from tests.utils.address import create_random_address
 from tests.utils.menu import create_random_dish_sku
+from tests.utils.payment import build_mockpay_callback_payload
 
 
 def _current_user(db: Session, email: str) -> User:
@@ -58,11 +57,7 @@ def _seed_paid_order(
 
     callback_response = client.post(
         f"{settings.API_V1_STR}/payments/callbacks",
-        json={
-            "provider": "mockpay",
-            "transaction_id": out_trade_no,
-            "payload": dumps({"out_trade_no": out_trade_no, "status": "success"}),
-        },
+        json=build_mockpay_callback_payload(out_trade_no=out_trade_no),
     )
     assert callback_response.status_code == 200
 
