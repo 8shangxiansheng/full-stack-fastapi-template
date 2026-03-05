@@ -5,6 +5,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
+from sqlalchemy import update
 from sqlmodel import col, delete, select
 
 from app.api.deps import CurrentUser, SessionDep
@@ -188,7 +189,7 @@ def create_order(
     if len(cart_items) == 0:
         raise HTTPException(status_code=400, detail="Cart is empty")
 
-    prepared_items: list[tuple[CartItem, DishSku, Dish, Decimal]] = []
+    prepared_items: list[dict[str, Any]] = []
     total_amount = Decimal("0")
     for cart_item in cart_items:
         sku = session.get(DishSku, cart_item.dish_sku_id)
@@ -199,12 +200,19 @@ def create_order(
             raise HTTPException(status_code=404, detail="Dish not found")
         if not sku.is_active or not dish.is_active:
             raise HTTPException(status_code=400, detail="Dish SKU is not available")
-        if cart_item.quantity > sku.stock:
-            raise HTTPException(status_code=400, detail="Insufficient stock")
 
         line_amount = sku.price * cart_item.quantity
         total_amount += line_amount
-        prepared_items.append((cart_item, sku, dish, line_amount))
+        prepared_items.append(
+            {
+                "sku_id": sku.id,
+                "dish_name_snapshot": dish.name,
+                "sku_name_snapshot": sku.name,
+                "unit_price": sku.price,
+                "quantity": cart_item.quantity,
+                "line_amount": line_amount,
+            }
+        )
 
     order = Order(
         user_id=current_user.id,
@@ -216,19 +224,29 @@ def create_order(
     session.add(order)
     session.flush()
 
-    for cart_item, sku, dish, line_amount in prepared_items:
+    for prepared in prepared_items:
+        update_result = session.exec(
+            update(DishSku)
+            .where(
+                DishSku.id == prepared["sku_id"],
+                DishSku.stock >= prepared["quantity"],
+            )
+            .values(stock=DishSku.stock - prepared["quantity"])
+        )
+        if update_result.rowcount != 1:
+            session.rollback()
+            raise HTTPException(status_code=400, detail="Insufficient stock")
+
         order_item = OrderItem(
             order_id=order.id,
-            dish_sku_id=sku.id,
-            dish_name_snapshot=dish.name,
-            sku_name_snapshot=sku.name,
-            unit_price=sku.price,
-            quantity=cart_item.quantity,
-            line_amount=line_amount,
+            dish_sku_id=prepared["sku_id"],
+            dish_name_snapshot=prepared["dish_name_snapshot"],
+            sku_name_snapshot=prepared["sku_name_snapshot"],
+            unit_price=prepared["unit_price"],
+            quantity=prepared["quantity"],
+            line_amount=prepared["line_amount"],
         )
-        sku.stock -= cart_item.quantity
         session.add(order_item)
-        session.add(sku)
 
     session.add(
         OrderStatusLog(

@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
 from app.core.config import settings
-from app.models import DishSku, PaymentRecord, PaymentStatus, User
+from app.models import DishSku, OrderItem, PaymentRecord, PaymentStatus, User
 from tests.utils.address import create_random_address
 from tests.utils.menu import create_random_dish_sku
 from tests.utils.payment import build_mockpay_callback_payload
@@ -266,3 +266,58 @@ def test_refund_approval_updates_payment_status(
     if not payment:
         raise Exception("Payment record not found")
     assert payment.status == PaymentStatus.REFUNDED
+
+
+def test_create_order_shared_sku_no_oversell(
+    client: TestClient,
+    normal_user_token_headers: dict[str, str],
+    db: Session,
+) -> None:
+    other_user = create_random_user(db)
+    other_headers = authentication_token_from_email(
+        client=client,
+        email=other_user.email,
+        db=db,
+    )
+
+    _clear_cart(client, normal_user_token_headers)
+    _clear_cart(client, other_headers)
+
+    current_user = _current_user(db, settings.EMAIL_TEST_USER)
+    address_for_current = create_random_address(db, user=current_user, is_default=True)
+    address_for_other = create_random_address(db, user=other_user, is_default=True)
+
+    sku = create_random_dish_sku(db)
+    sku.stock = 1
+    db.add(sku)
+    db.commit()
+    db.refresh(sku)
+
+    for headers in (normal_user_token_headers, other_headers):
+        add_response = client.post(
+            f"{settings.API_V1_STR}/cart/items",
+            headers=headers,
+            json={"dish_sku_id": str(sku.id), "quantity": 1},
+        )
+        assert add_response.status_code == 200
+
+    first_order_response = client.post(
+        f"{settings.API_V1_STR}/orders/",
+        headers=normal_user_token_headers,
+        json={"address_id": str(address_for_current.id)},
+    )
+    assert first_order_response.status_code == 200
+
+    second_order_response = client.post(
+        f"{settings.API_V1_STR}/orders/",
+        headers=other_headers,
+        json={"address_id": str(address_for_other.id)},
+    )
+    assert second_order_response.status_code == 400
+    assert second_order_response.json()["detail"] == "Insufficient stock"
+
+    db.refresh(sku)
+    assert sku.stock == 0
+
+    order_items = db.exec(select(OrderItem).where(OrderItem.dish_sku_id == sku.id)).all()
+    assert len(order_items) == 1
