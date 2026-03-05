@@ -122,6 +122,10 @@ def _load_order_or_404(session: SessionDep, order_id: uuid.UUID) -> Order:
     return order
 
 
+def _to_order_public(order: Order) -> OrderPublic:
+    return OrderPublic.model_validate(order, from_attributes=True)
+
+
 def _build_order_detail(session: SessionDep, order: Order) -> OrderDetailPublic:
     order_items = session.exec(
         select(OrderItem).where(OrderItem.order_id == order.id).order_by(col(OrderItem.created_at))
@@ -131,10 +135,16 @@ def _build_order_detail(session: SessionDep, order: Order) -> OrderDetailPublic:
         .where(OrderStatusLog.order_id == order.id)
         .order_by(col(OrderStatusLog.created_at))
     ).all()
+    order_public = _to_order_public(order)
     return OrderDetailPublic(
-        **order.model_dump(),
-        items=[OrderItemPublic(**item.model_dump()) for item in order_items],
-        status_logs=[OrderStatusLogPublic(**log.model_dump()) for log in status_logs],
+        **order_public.model_dump(),
+        items=[
+            OrderItemPublic.model_validate(item, from_attributes=True) for item in order_items
+        ],
+        status_logs=[
+            OrderStatusLogPublic.model_validate(log, from_attributes=True)
+            for log in status_logs
+        ],
     )
 
 
@@ -154,7 +164,8 @@ def read_orders(
         statement = statement.where(Order.user_id == current_user.id)
     if status:
         statement = statement.where(Order.status == status)
-    return session.exec(statement).all()
+    orders = session.exec(statement).all()
+    return [_to_order_public(order) for order in orders]
 
 
 @router.get("/{order_id}", response_model=OrderDetailPublic)
