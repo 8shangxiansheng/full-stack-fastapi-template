@@ -59,6 +59,48 @@ def test_add_same_sku_merges_quantity(
     assert found[0]["quantity"] == 4
 
 
+def test_read_cart_multiple_skus(
+    client: TestClient,
+    normal_user_token_headers: dict[str, str],
+    db: Session,
+) -> None:
+    clear_response = client.delete(
+        f"{settings.API_V1_STR}/cart/items",
+        headers=normal_user_token_headers,
+    )
+    assert clear_response.status_code == 200
+
+    first_sku = create_random_dish_sku(db)
+    second_sku = create_random_dish_sku(db)
+
+    first_add_response = client.post(
+        f"{settings.API_V1_STR}/cart/items",
+        headers=normal_user_token_headers,
+        json={"dish_sku_id": str(first_sku.id), "quantity": 1},
+    )
+    assert first_add_response.status_code == 200
+
+    second_add_response = client.post(
+        f"{settings.API_V1_STR}/cart/items",
+        headers=normal_user_token_headers,
+        json={"dish_sku_id": str(second_sku.id), "quantity": 2},
+    )
+    assert second_add_response.status_code == 200
+
+    read_response = client.get(
+        f"{settings.API_V1_STR}/cart/",
+        headers=normal_user_token_headers,
+    )
+    assert read_response.status_code == 200
+    body = read_response.json()
+    items = body["items"]
+    assert len(items) == 2
+    item_ids = {item["dish_sku_id"] for item in items}
+    assert item_ids == {str(first_sku.id), str(second_sku.id)}
+    total_amount = sum(Decimal(item["line_amount"]) for item in items)
+    assert Decimal(body["total_amount"]) == total_amount
+
+
 def test_update_and_delete_cart_item(
     client: TestClient,
     normal_user_token_headers: dict[str, str],

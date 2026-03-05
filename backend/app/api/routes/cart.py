@@ -75,18 +75,19 @@ def _load_available_sku(session: SessionDep, dish_sku_id: uuid.UUID) -> DishSku:
 def read_cart(session: SessionDep, current_user: CurrentUser) -> Any:
     """Retrieve current user's cart."""
     cart = _get_or_create_cart(session, current_user.id)
-    statement = select(CartItem).where(CartItem.cart_id == cart.id)
-    cart_items = session.exec(statement).all()
+    statement = (
+        select(CartItem, DishSku, Dish)
+        .join(DishSku, DishSku.id == CartItem.dish_sku_id, isouter=True)
+        .join(Dish, Dish.id == DishSku.dish_id, isouter=True)
+        .where(CartItem.cart_id == cart.id)
+    )
+    cart_rows = session.exec(statement).all()
 
     result_items: list[CartItemPublic] = []
     total_amount = Decimal("0")
 
-    for item in cart_items:
-        sku = session.get(DishSku, item.dish_sku_id)
-        if not sku:
-            continue
-        dish = session.get(Dish, sku.dish_id)
-        if not dish:
+    for item, sku, dish in cart_rows:
+        if sku is None or dish is None:
             continue
 
         line_amount = sku.price * item.quantity
