@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AddressesReadAddressesResponse, AddressesCreateAddressData, AddressesCreateAddressResponse, AddressesUpdateAddressData, AddressesUpdateAddressResponse, AddressesDeleteAddressData, AddressesDeleteAddressResponse, CartReadCartResponse, CartAddCartItemData, CartAddCartItemResponse, CartClearCartResponse, CartUpdateCartItemData, CartUpdateCartItemResponse, CartDeleteCartItemData, CartDeleteCartItemResponse, DashboardReadDashboardOverviewResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MenuReadCategoriesData, MenuReadCategoriesResponse, MenuCreateCategoryData, MenuCreateCategoryResponse, MenuUpdateCategoryData, MenuUpdateCategoryResponse, MenuDeleteCategoryData, MenuDeleteCategoryResponse, MenuReadDishesData, MenuReadDishesResponse, MenuCreateDishData, MenuCreateDishResponse, MenuUpdateDishData, MenuUpdateDishResponse, MenuDeleteDishData, MenuDeleteDishResponse, MenuReadDishSkusData, MenuReadDishSkusResponse, MenuCreateDishSkuData, MenuCreateDishSkuResponse, MenuUpdateDishSkuData, MenuUpdateDishSkuResponse, MenuDeleteDishSkuData, MenuDeleteDishSkuResponse, OrdersReadOrdersData, OrdersReadOrdersResponse, OrdersCreateOrderData, OrdersCreateOrderResponse, OrdersReadOrderData, OrdersReadOrderResponse, OrdersChangeOrderStatusData, OrdersChangeOrderStatusResponse, PaymentsCreatePaymentData, PaymentsCreatePaymentResponse, PaymentsPaymentCallbackData, PaymentsPaymentCallbackResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AddressesReadAddressesResponse, AddressesCreateAddressData, AddressesCreateAddressResponse, AddressesUpdateAddressData, AddressesUpdateAddressResponse, AddressesDeleteAddressData, AddressesDeleteAddressResponse, CartReadCartResponse, CartAddCartItemData, CartAddCartItemResponse, CartClearCartResponse, CartUpdateCartItemData, CartUpdateCartItemResponse, CartDeleteCartItemData, CartDeleteCartItemResponse, DashboardReadDashboardOverviewResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MenuReadCategoriesData, MenuReadCategoriesResponse, MenuCreateCategoryData, MenuCreateCategoryResponse, MenuUpdateCategoryData, MenuUpdateCategoryResponse, MenuDeleteCategoryData, MenuDeleteCategoryResponse, MenuReadDishesData, MenuReadDishesResponse, MenuCreateDishData, MenuCreateDishResponse, MenuReadDishesWithSkusData, MenuReadDishesWithSkusResponse, MenuUpdateDishData, MenuUpdateDishResponse, MenuDeleteDishData, MenuDeleteDishResponse, MenuReadDishSkusData, MenuReadDishSkusResponse, MenuCreateDishSkuData, MenuCreateDishSkuResponse, MenuUpdateDishSkuData, MenuUpdateDishSkuResponse, MenuDeleteDishSkuData, MenuDeleteDishSkuResponse, OrdersReadOrdersData, OrdersReadOrdersResponse, OrdersCreateOrderData, OrdersCreateOrderResponse, OrdersReadOrderData, OrdersReadOrderResponse, OrdersChangeOrderStatusData, OrdersChangeOrderStatusResponse, PaymentsCreatePaymentData, PaymentsCreatePaymentResponse, PaymentsPaymentCallbackData, PaymentsPaymentCallbackResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class AddressesService {
     /**
@@ -529,6 +529,33 @@ export class MenuService {
             url: '/api/v1/menu/dishes',
             body: data.requestBody,
             mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Dishes With Skus
+     * Retrieve dishes with sku list in one aggregated payload.
+     * @param data The data for the request.
+     * @param data.categoryId
+     * @param data.isActive
+     * @param data.skip
+     * @param data.limit
+     * @returns DishWithSkusPublic Successful Response
+     * @throws ApiError
+     */
+    public static readDishesWithSkus(data: MenuReadDishesWithSkusData = {}): CancelablePromise<MenuReadDishesWithSkusResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/menu/dishes-with-skus',
+            query: {
+                category_id: data.categoryId,
+                is_active: data.isActive,
+                skip: data.skip,
+                limit: data.limit
+            },
             errors: {
                 422: 'Validation Error'
             }

@@ -155,6 +155,16 @@ export type DishUpdate = {
     is_active?: (boolean | null);
 };
 
+export type DishWithSkusPublic = {
+    id: string;
+    category_id: string;
+    name: string;
+    description?: (string | null);
+    is_active: boolean;
+    created_at?: (string | null);
+    skus?: Array<DishSkuPublic>;
+};
+
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
 };
@@ -515,6 +525,15 @@ export type MenuCreateDishData = {
 };
 
 export type MenuCreateDishResponse = (DishPublic);
+
+export type MenuReadDishesWithSkusData = {
+    categoryId?: (string | null);
+    isActive?: (boolean | null);
+    limit?: number;
+    skip?: number;
+};
+
+export type MenuReadDishesWithSkusResponse = (Array<DishWithSkusPublic>);
 
 export type MenuUpdateDishData = {
     dishId: string;

@@ -1,3 +1,4 @@
+from collections import defaultdict
 import uuid
 from datetime import datetime
 from decimal import Decimal
@@ -80,6 +81,16 @@ class DishSkuPublic(BaseModel):
     created_at: datetime | None = None
 
 
+class DishWithSkusPublic(BaseModel):
+    id: uuid.UUID
+    category_id: uuid.UUID
+    name: str
+    description: str | None = None
+    is_active: bool
+    created_at: datetime | None = None
+    skus: list[DishSkuPublic] = Field(default_factory=list)
+
+
 @router.get("/categories", response_model=list[CategoryPublic])
 def read_categories(
     session: SessionDep,
@@ -158,6 +169,59 @@ def read_dishes(
     if is_active is not None:
         statement = statement.where(Dish.is_active == is_active)
     return session.exec(statement).all()
+
+
+@router.get("/dishes-with-skus", response_model=list[DishWithSkusPublic])
+def read_dishes_with_skus(
+    session: SessionDep,
+    current_user: CurrentUser,
+    category_id: uuid.UUID | None = None,
+    is_active: bool | None = None,
+    skip: int = 0,
+    limit: int = 100,
+) -> Any:
+    """Retrieve dishes with sku list in one aggregated payload."""
+    _ = current_user
+    dish_statement = (
+        select(Dish).order_by(col(Dish.created_at).desc()).offset(skip).limit(limit)
+    )
+    if category_id:
+        dish_statement = dish_statement.where(Dish.category_id == category_id)
+    if is_active is not None:
+        dish_statement = dish_statement.where(Dish.is_active == is_active)
+
+    dishes = session.exec(dish_statement).all()
+    if not dishes:
+        return []
+
+    dish_ids = [dish.id for dish in dishes]
+    sku_statement = (
+        select(DishSku)
+        .where(col(DishSku.dish_id).in_(dish_ids))
+        .order_by(col(DishSku.created_at))
+    )
+    if is_active is not None:
+        sku_statement = sku_statement.where(DishSku.is_active == is_active)
+
+    skus_by_dish: dict[uuid.UUID, list[DishSku]] = defaultdict(list)
+    for sku in session.exec(sku_statement).all():
+        skus_by_dish[sku.dish_id].append(sku)
+
+    return [
+        DishWithSkusPublic(
+            id=dish.id,
+            category_id=dish.category_id,
+            name=dish.name,
+            description=dish.description,
+            is_active=dish.is_active,
+            created_at=dish.created_at,
+            skus=[
+                DishSkuPublic.model_validate(sku, from_attributes=True)
+                for sku in skus_by_dish[dish.id]
+            ],
+        )
+        for dish in dishes
+    ]
 
 
 @router.post(

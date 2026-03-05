@@ -802,6 +802,62 @@ export const DishUpdateSchema = {
     title: 'DishUpdate'
 } as const;
 
+export const DishWithSkusPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        category_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Category Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        is_active: {
+            type: 'boolean',
+            title: 'Is Active'
+        },
+        created_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created At'
+        },
+        skus: {
+            items: {
+                '$ref': '#/components/schemas/DishSkuPublic'
+            },
+            type: 'array',
+            title: 'Skus'
+        }
+    },
+    type: 'object',
+    required: ['id', 'category_id', 'name', 'is_active'],
+    title: 'DishWithSkusPublic'
+} as const;
+
 export const HTTPValidationErrorSchema = {
     properties: {
         detail: {

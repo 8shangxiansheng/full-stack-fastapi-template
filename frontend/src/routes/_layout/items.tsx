@@ -42,21 +42,9 @@ function getMenuQueryOptions() {
     queryFn: async (): Promise<MenuData> => {
       const [categories, dishes] = await Promise.all([
         MenuService.readCategories({ isActive: true }),
-        MenuService.readDishes({ isActive: true, skip: 0, limit: 100 }),
+        MenuService.readDishesWithSkus({ isActive: true, skip: 0, limit: 100 }),
       ])
-
-      const skusList = await Promise.all(
-        dishes.map((dish) =>
-          MenuService.readDishSkus({ dishId: dish.id, isActive: true }),
-        ),
-      )
-
-      const dishWithSkus: MenuDish[] = dishes.map((dish, index) => ({
-        ...dish,
-        skus: skusList[index] ?? [],
-      }))
-
-      return { categories, dishes: dishWithSkus }
+      return { categories, dishes: dishes as MenuDish[] }
     },
     queryKey: ["menu"],
   }

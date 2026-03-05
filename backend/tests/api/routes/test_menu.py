@@ -4,7 +4,11 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session
 
 from app.core.config import settings
-from tests.utils.menu import create_random_category, create_random_dish
+from tests.utils.menu import (
+    create_random_category,
+    create_random_dish,
+    create_random_dish_sku,
+)
 
 
 def test_create_category(
@@ -79,6 +83,34 @@ def test_create_sku_and_read_skus(
     body = list_response.json()
     assert len(body) >= 1
     assert any(item["name"] == payload["name"] for item in body)
+
+
+def test_read_dishes_with_skus(
+    client: TestClient,
+    superuser_token_headers: dict[str, str],
+    db: Session,
+) -> None:
+    category = create_random_category(db)
+    dish_with_sku = create_random_dish(db, category.id)
+    dish_without_sku = create_random_dish(db, category.id)
+    sku = create_random_dish_sku(db, dish_with_sku.id)
+
+    response = client.get(
+        f"{settings.API_V1_STR}/menu/dishes-with-skus",
+        headers=superuser_token_headers,
+        params={"category_id": str(category.id), "is_active": True},
+    )
+    assert response.status_code == 200
+
+    body = response.json()
+    dish_map = {item["id"]: item for item in body}
+    assert str(dish_with_sku.id) in dish_map
+    assert str(dish_without_sku.id) in dish_map
+    assert len(dish_map[str(dish_with_sku.id)]["skus"]) >= 1
+    assert any(
+        item["id"] == str(sku.id) for item in dish_map[str(dish_with_sku.id)]["skus"]
+    )
+    assert dish_map[str(dish_without_sku.id)]["skus"] == []
 
 
 def test_update_dish_category_not_found(
