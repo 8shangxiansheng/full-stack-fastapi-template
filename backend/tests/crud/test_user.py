@@ -1,6 +1,6 @@
 from fastapi.encoders import jsonable_encoder
 from pwdlib.hashers.bcrypt import BcryptHasher
-from sqlmodel import Session
+from sqlmodel import Session, func, select
 
 from app import crud
 from app.core.security import verify_password
@@ -128,3 +128,24 @@ def test_authenticate_user_with_bcrypt_upgrades_to_argon2(db: Session) -> None:
     assert verified
     # Should not need another update since it's already argon2
     assert updated_hash is None
+
+
+def test_create_user_if_not_exists_is_idempotent(db: Session) -> None:
+    email = random_email()
+    first_password = random_lower_string()
+    second_password = random_lower_string()
+
+    first_user = crud.create_user_if_not_exists(
+        session=db,
+        user_create=UserCreate(email=email, password=first_password),
+    )
+    second_user = crud.create_user_if_not_exists(
+        session=db,
+        user_create=UserCreate(email=email, password=second_password),
+    )
+
+    assert first_user.id == second_user.id
+    count = db.exec(select(func.count()).select_from(User).where(User.email == email)).one()
+    assert count == 1
+    verified, _ = verify_password(first_password, second_user.hashed_password)
+    assert verified

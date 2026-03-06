@@ -1,6 +1,7 @@
 import uuid
 from typing import Any
 
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from app.core.security import get_password_hash, verify_password
@@ -15,6 +16,22 @@ def create_user(*, session: Session, user_create: UserCreate) -> User:
     session.commit()
     session.refresh(db_obj)
     return db_obj
+
+
+def create_user_if_not_exists(*, session: Session, user_create: UserCreate) -> User:
+    """Create user if absent, otherwise return existing user by email."""
+    existing_user = get_user_by_email(session=session, email=user_create.email)
+    if existing_user:
+        return existing_user
+
+    try:
+        return create_user(session=session, user_create=user_create)
+    except IntegrityError:
+        session.rollback()
+        existing_user = get_user_by_email(session=session, email=user_create.email)
+        if existing_user:
+            return existing_user
+        raise
 
 
 def update_user(*, session: Session, db_user: User, user_in: UserUpdate) -> Any:
