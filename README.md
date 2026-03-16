@@ -226,6 +226,18 @@ bash scripts/run-performance-baseline.sh
 
 The script targets `http://127.0.0.1:8000/api/v1` by default and falls back to Docker `grafana/k6` when a local `k6` binary is not installed.
 
+## Release Gate
+
+Run the unified pre-release gate with:
+
+```bash
+bash scripts/release-gate.sh fast
+bash scripts/release-gate.sh full
+```
+
+`fast` runs health checks, OpenAPI client generation, backend tests, and frontend build.
+`full` adds Playwright end-to-end verification on top of `fast`.
+
 ## Deployment
 
 Deployment docs: [deployment.md](./deployment.md).
