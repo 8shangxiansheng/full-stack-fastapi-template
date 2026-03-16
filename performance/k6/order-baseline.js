@@ -1,7 +1,7 @@
 import crypto from "k6/crypto";
-import encoding from "k6/encoding";
 import http from "k6/http";
 import { check, fail, sleep } from "k6";
+import exec from "k6/execution";
 
 const config = {
   apiBaseUrl: (__ENV.API_BASE_URL || "http://127.0.0.1:8000/api/v1").replace(/\/$/, ""),
@@ -25,6 +25,19 @@ export const options = {
     http_req_duration: ["p(95)<1200"],
   },
 };
+
+function buildPerfUsers(poolSize) {
+  const runId = Date.now();
+  const users = [];
+  for (let index = 0; index < poolSize; index += 1) {
+    users.push({
+      email: `perf-${runId}-${index}@example.com`,
+      password: config.password,
+      full_name: `Perf User ${index + 1}`,
+    });
+  }
+  return users;
+}
 
 function jsonHeaders(token) {
   return {
@@ -59,8 +72,8 @@ function sleepThinkTime() {
   }
 }
 
-function login() {
-  const payload = `username=${encodeURIComponent(config.username)}&password=${encodeURIComponent(config.password)}`;
+function login(username, password) {
+  const payload = `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
   const response = request("POST", "/login/access-token", payload, { headers: formHeaders() });
   assertOk(response, 200, "login");
   const body = response.json();
@@ -70,17 +83,70 @@ function login() {
   return body.access_token;
 }
 
-function fetchMenu(token) {
-  const response = request("GET", "/menu/dishes-with-skus?is_active=true&limit=100", null, {
+export function setup() {
+  const response = request("GET", "/openapi.json");
+  assertOk(response, 200, "fetch openapi");
+  const spec = response.json();
+  const hasAggregateMenuPath = Boolean(
+    spec &&
+      spec.paths &&
+      spec.paths["/api/v1/menu/dishes-with-skus"],
+  );
+  const userPoolSize = Number(__ENV.K6_USER_POOL_SIZE || __ENV.K6_VUS || 1);
+  const users = buildPerfUsers(userPoolSize);
+
+  users.forEach((user) => {
+    const signupResponse = request(
+      "POST",
+      "/users/signup",
+      JSON.stringify(user),
+      { headers: { "Content-Type": "application/json" } },
+    );
+    if (signupResponse.status !== 200 && signupResponse.status !== 400) {
+      fail(`signup perf user failed: ${signupResponse.status} ${signupResponse.body}`);
+    }
+  });
+
+  return {
+    hasAggregateMenuPath,
+    users,
+  };
+}
+
+function fetchMenu(token, hasAggregateMenuPath) {
+  if (hasAggregateMenuPath) {
+    const response = request("GET", "/menu/dishes-with-skus?is_active=true&limit=100", null, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    assertOk(response, 200, "fetch menu");
+    const dishes = response.json();
+    const firstDishWithSku = dishes.find((dish) => Array.isArray(dish.skus) && dish.skus.length > 0);
+    if (!firstDishWithSku) {
+      fail("no active dish sku found, run demo seed first");
+    }
+    return firstDishWithSku.skus[0];
+  }
+
+  const dishesResponse = request("GET", "/menu/dishes?is_active=true&limit=100", null, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  assertOk(response, 200, "fetch menu");
-  const dishes = response.json();
-  const firstDishWithSku = dishes.find((dish) => Array.isArray(dish.skus) && dish.skus.length > 0);
-  if (!firstDishWithSku) {
-    fail("no active dish sku found, run demo seed first");
+  assertOk(dishesResponse, 200, "fetch dishes");
+  const dishes = dishesResponse.json();
+  const firstDish = dishes[0];
+  if (!firstDish || !firstDish.id) {
+    fail("no active dish found, run demo seed first");
   }
-  return firstDishWithSku.skus[0];
+
+  const skusResponse = request("GET", `/menu/dishes/${firstDish.id}/skus?is_active=true`, null, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  assertOk(skusResponse, 200, "fetch dish skus");
+  const skus = skusResponse.json();
+  const firstSku = skus[0];
+  if (!firstSku || !firstSku.id) {
+    fail("no active dish sku found for first dish, run demo seed first");
+  }
+  return firstSku;
 }
 
 function ensureAddress(token) {
@@ -158,8 +224,7 @@ function createPayment(token, orderId) {
 
 function buildCallbackSignature(transactionId, timestamp, payload) {
   const message = `${config.paymentProvider}:${transactionId}:${timestamp}:${payload}`;
-  const digest = crypto.hmac("sha256", config.callbackSecret, message, "binary");
-  return encoding.hexEncode(digest);
+  return crypto.hmac("sha256", config.callbackSecret, message, "hex");
 }
 
 function callbackPayment(outTradeNo) {
@@ -197,11 +262,13 @@ function fetchOrder(token, orderId) {
   }
 }
 
-export default function () {
-  const token = login();
+export default function (data) {
+  const vuIndex = exec.vu.idInTest - 1;
+  const currentUser = data.users[vuIndex % data.users.length];
+  const token = login(currentUser.email, currentUser.password);
   sleepThinkTime();
 
-  const sku = fetchMenu(token);
+  const sku = fetchMenu(token, data.hasAggregateMenuPath);
   const addressId = ensureAddress(token);
   sleepThinkTime();
 
