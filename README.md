@@ -214,6 +214,18 @@ Backend docs: [backend/README.md](./backend/README.md).
 
 Frontend docs: [frontend/README.md](./frontend/README.md).
 
+## Performance Baseline
+
+Order flow baseline assets are available in [performance/README.md](./performance/README.md).
+
+Run the local baseline with:
+
+```bash
+bash scripts/run-performance-baseline.sh
+```
+
+The script targets `http://127.0.0.1:8000/api/v1` by default and falls back to Docker `grafana/k6` when a local `k6` binary is not installed.
+
 ## Deployment
 
 Deployment docs: [deployment.md](./deployment.md).
