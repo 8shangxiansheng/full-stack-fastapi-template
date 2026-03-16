@@ -237,6 +237,18 @@ bash scripts/release-gate.sh full
 
 `fast` runs health checks, OpenAPI client generation, backend tests, and frontend build.
 `full` adds Playwright end-to-end verification on top of `fast`.
+To fail on insecure default secrets during release checks, use:
+
+```bash
+RELEASE_SECURITY_MODE=strict bash scripts/release-gate.sh full
+```
+
+You can also run the dedicated secret governance check directly:
+
+```bash
+bash scripts/security-gate.sh warn
+bash scripts/security-gate.sh strict
+```
 
 ## Deployment
 

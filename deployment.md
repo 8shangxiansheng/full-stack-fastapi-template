@@ -167,6 +167,18 @@ Set the `FIRST_SUPER_USER_PASSWORD` to something different than `changethis`:
 export FIRST_SUPERUSER_PASSWORD="changethis"
 ```
 
+Set the `PAYMENT_CALLBACK_SIGNING_SECRET` to a dedicated value different from `changethis`:
+
+```bash
+export PAYMENT_CALLBACK_SIGNING_SECRET="changethis"
+```
+
+Before deploying, run the strict secret governance gate:
+
+```bash
+bash scripts/security-gate.sh strict
+```
+
 Set the `BACKEND_CORS_ORIGINS` to include your domain:
 
 ```bash
@@ -301,6 +313,7 @@ The current Github Actions workflows expect these secrets:
 * `EMAILS_FROM_EMAIL`
 * `FIRST_SUPERUSER`
 * `FIRST_SUPERUSER_PASSWORD`
+* `PAYMENT_CALLBACK_SIGNING_SECRET`
 * `POSTGRES_PASSWORD`
 * `SECRET_KEY`
 * `LATEST_CHANGES`

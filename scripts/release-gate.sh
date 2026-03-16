@@ -5,6 +5,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MODE="${1:-full}"
 POSTGRES_PASSWORD_VALUE="${POSTGRES_PASSWORD:-changethis}"
+SECURITY_MODE="${RELEASE_SECURITY_MODE:-warn}"
 COMPOSE_FILES=(-f compose.yml -f compose.override.yml)
 
 usage() {
@@ -54,6 +55,10 @@ generate_client() {
   bash scripts/generate-client.sh
 }
 
+run_security_gate() {
+  bash scripts/security-gate.sh "$SECURITY_MODE"
+}
+
 run_backend_tests() {
   (
     cd backend
@@ -95,7 +100,9 @@ require_command uv
 cd "$ROOT_DIR"
 
 echo "[release-gate] mode=$MODE"
+echo "[release-gate] security_mode=$SECURITY_MODE"
 
+run_step "Security configuration gate" run_security_gate
 run_step "Ensure compose stack" ensure_stack
 run_step "Backend health check" check_backend_health
 run_step "Frontend health check" check_frontend_health

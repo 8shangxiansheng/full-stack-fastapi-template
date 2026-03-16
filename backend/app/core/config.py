@@ -23,6 +23,51 @@ def parse_cors(v: Any) -> list[str] | str:
     raise ValueError(v)
 
 
+GOVERNED_SECRET_FIELDS = (
+    "SECRET_KEY",
+    "POSTGRES_PASSWORD",
+    "FIRST_SUPERUSER_PASSWORD",
+    "PAYMENT_CALLBACK_SIGNING_SECRET",
+)
+
+INSECURE_SECRET_VALUES = {
+    "",
+    "changethis",
+    "change-me",
+    "change_me",
+    "password",
+    "example",
+    "example-password",
+}
+
+
+def is_insecure_secret_value(value: str | None) -> bool:
+    if value is None:
+        return True
+    return value.strip().lower() in INSECURE_SECRET_VALUES
+
+
+def collect_secret_issues(settings: "Settings", strict: bool = False) -> list[str]:
+    issues: list[str] = []
+
+    for field_name in GOVERNED_SECRET_FIELDS:
+        value = getattr(settings, field_name, None)
+        if is_insecure_secret_value(value):
+            issues.append(
+                f"{field_name} uses an insecure placeholder value and must be rotated"
+            )
+
+    if strict:
+        for field_name in ("SECRET_KEY", "PAYMENT_CALLBACK_SIGNING_SECRET"):
+            value = (getattr(settings, field_name, "") or "").strip()
+            if len(value) < 32:
+                issues.append(
+                    f"{field_name} must be at least 32 characters in strict mode"
+                )
+
+    return issues
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         # Use top level .env file (one level above ./backend/)
@@ -96,27 +141,17 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
 
-    def _check_default_secret(self, var_name: str, value: str | None) -> None:
-        if value == "changethis":
-            message = (
-                f'The value of {var_name} is "changethis", '
-                "for security, please change it, at least for deployments."
-            )
-            if self.ENVIRONMENT == "local":
-                warnings.warn(message, stacklevel=1)
-            else:
-                raise ValueError(message)
-
     @model_validator(mode="after")
     def _enforce_non_default_secrets(self) -> Self:
-        self._check_default_secret("SECRET_KEY", self.SECRET_KEY)
-        self._check_default_secret("POSTGRES_PASSWORD", self.POSTGRES_PASSWORD)
-        self._check_default_secret(
-            "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD
-        )
-        self._check_default_secret(
-            "PAYMENT_CALLBACK_SIGNING_SECRET", self.PAYMENT_CALLBACK_SIGNING_SECRET
-        )
+        issues = collect_secret_issues(self)
+        if not issues:
+            return self
+
+        message = "; ".join(issues)
+        if self.ENVIRONMENT == "local":
+            warnings.warn(message, stacklevel=1)
+        else:
+            raise ValueError(message)
 
         return self
 
